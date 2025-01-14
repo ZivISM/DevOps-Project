@@ -1,0 +1,47 @@
+global:
+  environment: development
+  namespace: dev
+
+frontend:
+  replicaCount: 1
+  image:
+    tag: dev
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    hosts:
+      - host: dev.app.example.com
+
+backend:
+  replicaCount: 1
+  image:
+    tag: dev
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  ingress:
+    hosts:
+      - host: dev.api.example.com
+  
+  autoscaling:
+    enabled: false
+  
+  pdb:
+    enabled: false
+
+postgresql:
+  primary:
+    persistence:
+      size: 5Gi
+
+monitoring:
+  enabled: true

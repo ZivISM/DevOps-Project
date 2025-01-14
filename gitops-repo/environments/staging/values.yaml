@@ -1,0 +1,51 @@
+global:
+  environment: staging
+  namespace: staging
+
+frontend:
+  replicaCount: 2
+  image:
+    tag: staging
+  resources:
+    limits:
+      cpu: 400m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  ingress:
+    hosts:
+      - host: staging.app.example.com
+
+backend:
+  replicaCount: 2
+  image:
+    tag: staging
+  resources:
+    limits:
+      cpu: 800m
+      memory: 1Gi
+    requests:
+      cpu: 400m
+      memory: 512Mi
+  ingress:
+    hosts:
+      - host: staging.api.example.com
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilization: 70
+  
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+postgresql:
+  primary:
+    persistence:
+      size: 10Gi
+
+monitoring:
+  enabled: true
