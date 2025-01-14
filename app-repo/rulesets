@@ -1,0 +1,73 @@
+# Repository rulesets configuration
+rules:
+  # Protect main branch
+  - name: "Protect main branch"
+    target: "refs/heads/main"
+    rules:
+      # Require pull request reviews before merging
+      - type: "required_reviews"
+        parameters:
+          required_approving_review_count: 1
+          dismiss_stale_reviews: true
+          require_code_owner_reviews: true
+          require_last_push_approval: true
+      
+      # Require status checks to pass before merging
+      - type: "required_status_checks"
+        parameters:
+          strict: true
+          checks:
+            - context: "build"
+            - context: "test"
+            - context: "lint"
+
+      # Restrict who can push to matching branches
+      - type: "pull_request_only"
+        parameters:
+          allow_fork_syncing: false
+
+      # Require linear history
+      - type: "linear_history"
+        parameters:
+          required: true
+
+      # Block force pushes
+      - type: "block_force_pushes"
+
+  # Protect development branch
+  - name: "Protect development branch"
+    target: "refs/heads/development"
+    rules:
+      - type: "required_reviews"
+        parameters:
+          required_approving_review_count: 1
+          dismiss_stale_reviews: true
+      
+      - type: "required_status_checks"
+        parameters:
+          strict: true
+          checks:
+            - context: "build"
+            - context: "test"
+
+      - type: "pull_request_only"
+
+  # Branch naming convention
+  - name: "Branch naming convention"
+    target: "refs/heads/*"
+    rules:
+      - type: "branch_name_pattern"
+        parameters:
+          pattern: "^(feature|bugfix|hotfix|release)/[a-z0-9-]+$"
+          message: "Branch names must follow the pattern: feature/*, bugfix/*, hotfix/*, or release/*"
+
+  # Require signed commits
+  - name: "Require signed commits"
+    target: "refs/heads/*"
+    rules:
+      - type: "required_signatures"
+
+bypass:
+  # Users/teams who can bypass rules
+  users: []
+  teams: ["maintainers"]

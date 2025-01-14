@@ -1,0 +1,66 @@
+# templates/postgres-init-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgres-init
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  01_init_schema.sql: |-
+    -- Enable UUID extension for better ID management
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    -- Create habits table
+    CREATE TABLE IF NOT EXISTS habits (
+        id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        streak INTEGER DEFAULT 0,
+        completed BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        last_completed_at TIMESTAMP WITH TIME ZONE,
+        created_at_idx INDEX (created_at DESC)
+    );
+
+    -- Add comments to table and columns
+    COMMENT ON TABLE habits IS 'Stores user habits and their tracking information';
+    COMMENT ON COLUMN habits.id IS 'Unique identifier for each habit';
+    COMMENT ON COLUMN habits.streak IS 'Current streak count for the habit';
+    COMMENT ON COLUMN habits.last_completed_at IS 'Timestamp of the last completion';
+
+    -- Create function to update streak
+    CREATE OR REPLACE FUNCTION update_habit_streak()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        IF NEW.completed = true AND (OLD.completed = false OR OLD.completed IS NULL) THEN
+            IF OLD.last_completed_at IS NULL OR 
+               NEW.last_completed_at::date - OLD.last_completed_at::date = 1 THEN
+                NEW.streak := OLD.streak + 1;
+            ELSE
+                NEW.streak := 1;
+            END IF;
+        ELSIF NEW.completed = false AND OLD.completed = true THEN
+            NEW.streak := OLD.streak - 1;
+            IF NEW.streak < 0 THEN
+                NEW.streak := 0;
+            END IF;
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    -- Create trigger for streak updates
+    CREATE TRIGGER habit_streak_update
+        BEFORE UPDATE ON habits
+        FOR EACH ROW
+        EXECUTE FUNCTION update_habit_streak();
+
+  02_seed_data.sql: |-
+    DO $$ 
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM habits LIMIT 1) THEN
+            INSERT INTO habits (name, streak, completed) VALUES
+            ('Morning Meditation', 0, false),
+            ('Read 30 Minutes', 0, false),
+            ('Exercise', 0, false);
+        END IF;
+    END $$;

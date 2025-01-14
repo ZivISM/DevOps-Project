@@ -8,8 +8,8 @@ frontend:
   enabled: true
   replicaCount: 2
   image:
-    repository: frontend-image
-    tag: latest
+    repository: ################################
+    tag: #####################################
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -37,8 +37,8 @@ backend:
   enabled: true
   replicaCount: 2
   image:
-    repository: backend-image
-    tag: latest
+    repository: ################################
+    tag: #####################################
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -97,10 +97,14 @@ backend:
 postgresql:
   enabled: true
   auth:
-    username: app_user
-    password: changeme
-    database: app_db
+    username: #####################################
+    password: #####################################
+    database: #####################################
   primary:
+    initdb:
+      scripts:
+        - content of 01_init_schema.sql
+        - content of 02_seed_data.sql
     persistence:
       size: 10Gi
   resources:

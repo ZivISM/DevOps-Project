@@ -1,0 +1,77 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches: [ main, development ]
+    paths:
+      - 'source/frontend/**'
+      - '.github/workflows/build-frontend.yml'
+  pull_request:
+    branches: [ main, development ]
+    paths:
+      - 'source/frontend/**'
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        run: |
+          # Set the Docker tags
+          if [[ $GITHUB_REF == refs/heads/main ]]; then
+            echo "DOCKER_TAGS=${DOCKER_IMAGE}:latest,${DOCKER_IMAGE}:${GITHUB_SHA}" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAGS=${DOCKER_IMAGE}:dev-latest,${DOCKER_IMAGE}:${GITHUB_SHA}" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./source/frontend
+          push: true
+          tags: ${{ env.DOCKER_TAGS }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Update GitOps repository
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
+        env:
+          GH_TOKEN: ${{ secrets.GITOPS_PAT }}
+        run: |
+          # Clone GitOps repo
+          git clone https://oauth2:${GH_TOKEN}@github.com/your-org/gitops-repo.git
+          cd gitops-repo
+
+          # Determine environment based on branch
+          ENV="production"
+          if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
+            ENV="staging"
+          fi
+
+          # Update image tag in values file
+          yq eval ".frontend.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-frontend\"" -i "environments/${ENV}/values.yaml"
+          yq eval ".frontend.image.tag = \"${GITHUB_SHA}\"" -i "environments/${ENV}/values.yaml"
+
+          # Commit and push changes
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add "environments/${ENV}/values.yaml"
+          git commit -m "Update frontend image to ${GITHUB_SHA}"
+          git push
