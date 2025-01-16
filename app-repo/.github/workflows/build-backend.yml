@@ -7,7 +7,7 @@ on:
       - 'source/backend/**'
       - '.github/workflows/build-backend.yml'
   pull_request:
-    branches: [ main, development ]
+    branches: [ main ]
     paths:
       - 'source/backend/**'
 
@@ -45,6 +45,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./source/backend
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.DOCKER_TAGS }}
           cache-from: type=gha
@@ -56,8 +57,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITOPS_PAT }}
         run: |
           # Clone GitOps repo
-          git clone https://oauth2:${GH_TOKEN}@github.com/your-org/gitops-repo.git
-          cd gitops-repo
+          git clone https://oauth2:${GH_TOKEN}@github.com/ZivISM/DevOps-Project.git
+          cd DevOps-Project
 
           # Determine environment based on branch
           ENV="production"
@@ -66,12 +67,12 @@ jobs:
           fi
 
           # Update image tag in values file
-          yq eval ".backend.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-backend\"" -i "environments/${ENV}/values.yaml"
-          yq eval ".backend.image.tag = \"${GITHUB_SHA}\"" -i "environments/${ENV}/values.yaml"
+          yq eval ".backend.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-backend\"" -i "gitops-repo/environments/${ENV}/values.yaml"
+          yq eval ".backend.image.tag = \"${GITHUB_SHA}\"" -i "gitops-repo/environments/${ENV}/values.yaml"
 
           # Commit and push changes
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add "environments/${ENV}/values.yaml"
+          git add "gitops-repo/environments/${ENV}/values.yaml"
           git commit -m "Update backend image to ${GITHUB_SHA}"
           git push 

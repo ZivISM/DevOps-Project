@@ -2,6 +2,95 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, CheckCircle, Circle } from 'lucide-react';
 import axios from 'axios';
+import styled from 'styled-components';
+
+// Use window.location.hostname to determine environment
+const isLocalDevelopment = window.location.hostname === 'localhost';
+const API_URL = isLocalDevelopment 
+  ? 'http://localhost:5000'  // Use HTTP for local development
+  : '/api';
+
+console.log('Using API URL:', API_URL); // For debugging
+
+const client = axios.create({
+  baseURL: API_URL
+});
+
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`;
+
+const HabitGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+`;
+
+const HabitCard = styled.div`
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${props => props.theme.spacing.large};
+`;
+
+const Title = styled.h1`
+  font-size: 2rem;
+  color: ${props => props.theme.colors.text};
+  margin: 0;
+`;
+
+const AddHabitForm = styled.form`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: ${props => props.theme.spacing.large};
+`;
+
+const Input = styled.input`
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: ${props => props.theme.borderRadius};
+  font-size: 1rem;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.theme.colors.primary};
+    box-shadow: 0 0 0 2px ${props => props.theme.colors.primary}20;
+  }
+`;
+
+const Button = styled.button`
+  background: ${props => props.theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: ${props => props.theme.borderRadius};
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: ${props => props.theme.colors.secondary};
+  }
+`;
 
 const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
@@ -11,7 +100,11 @@ const HabitTracker = () => {
   useEffect(() => {
     const fetchHabits = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/habits');
+        console.log('Fetching habits');
+        
+        const response = await client.get(`habits`);
+        console.log(response.data);
+        
         setHabits(response.data);
       } catch (error) {
         console.error('Error fetching habits:', error);
@@ -20,27 +113,29 @@ const HabitTracker = () => {
     fetchHabits();
   }, []);
 
+
+
   // Add new habit
   const addHabit = async (e) => {
     e.preventDefault();
     if (!newHabit.trim()) return;
     
     try {
-      const response = await axios.post('http://localhost:5000/api/habits', {
+      const response = await client.post(`habits`, {
         name: newHabit
       });
       setHabits([...habits, response.data]);
       setNewHabit('');
     } catch (error) {
       console.error('Error adding habit:', error);
-    }
+    } 
   };
 
   // Toggle habit completion
   const toggleHabit = async (id) => {
     try {
       const habit = habits.find(h => h.id === id);
-      const response = await axios.put(`http://localhost:5000/api/habits/${id}`, {
+      const response = await client.put(`habits/${id}`, {
         completed: !habit.completed
       });
       setHabits(habits.map(h => 
@@ -52,62 +147,50 @@ const HabitTracker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">Daily Habits</h1>
-        
-        <form onSubmit={addHabit} className="mb-8">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              value={newHabit}
-              onChange={(e) => setNewHabit(e.target.value)}
-              placeholder="Add a new habit..."
-              className="flex-1 rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white rounded-lg px-6 py-2 hover:bg-blue-600 transition-colors flex items-center gap-2"
-            >
-              <PlusCircle size={20} />
-              Add
-            </button>
-          </div>
-        </form>
+    <Container>
+      <Header>
+        <Title>Daily Habits</Title>
+      </Header>
+      
+      <AddHabitForm onSubmit={addHabit}>
+        <Input
+          type="text"
+          value={newHabit}
+          onChange={(e) => setNewHabit(e.target.value)}
+          placeholder="Add a new habit..."
+        />
+        <Button type="submit">
+          <PlusCircle size={20} style={{ marginRight: '0.5rem' }} />
+          Add Habit
+        </Button>
+      </AddHabitForm>
 
-        <div className="space-y-4">
-          {habits.map(habit => (
-            <div
-              key={habit.id}
-              className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => toggleHabit(habit.id)}
-                    className="text-blue-500 hover:text-blue-600 transition-colors"
-                  >
-                    {habit.completed ? (
-                      <CheckCircle size={24} className="text-green-500" />
-                    ) : (
-                      <Circle size={24} />
-                    )}
-                  </button>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {habit.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Current streak: {habit.streak} days
-                    </p>
-                  </div>
-                </div>
-              </div>
+      <HabitGrid>
+        {habits.map(habit => (
+          <HabitCard key={habit.id}>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => toggleHabit(habit.id)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: habit.completed ? '#4361ee' : '#94a3b8'
+                }}
+              >
+                {habit.completed ? <CheckCircle size={24} /> : <Circle size={24} />}
+              </button>
+              <span style={{ 
+                color: '#334155',
+                textDecoration: habit.completed ? 'line-through' : 'none'
+              }}>
+                {habit.name}
+              </span>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
+          </HabitCard>
+        ))}
+      </HabitGrid>
+    </Container>
   );
 };
 

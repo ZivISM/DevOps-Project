@@ -1,6 +1,6 @@
 apiVersion: v2
-name: testing-app
-description: A Helm chart for deploying a 3-tier application
+name: HabitTracker
+description: A Helm chart for deploying a HabitTracker application
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
