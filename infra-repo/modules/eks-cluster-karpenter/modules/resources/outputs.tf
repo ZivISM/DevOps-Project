@@ -1,20 +1,4 @@
 ###############################################################################
-# Cluster Information
-###############################################################################
-
-output "cluster_endpoint" {
-  value = module.eks.cluster_endpoint
-}
-
-###############################################################################
-# ArgoCD URL
-###############################################################################
-output "argocd_url" {
-  value = "https://argocd.${var.domain_name}"
-  description = "URL to access ArgoCD UI"
-}
-
-###############################################################################
 # Route53 Nameservers
 ###############################################################################
 output "route53_nameservers" {
@@ -46,9 +30,10 @@ output "godaddy_instructions" {
 }
 
 ###############################################################################
-# Kubectl Configuration
+# ACM Certificate-ARN
 ###############################################################################
-output "configure_kubectl" {
-  description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
-  value       = "aws eks --region ${local.region} update-kubeconfig --name ${module.eks.cluster_name}"
-}
+# Output the certificate ARN for use in other resources
+output "acm_certificate_arn" {
+  description = "The ARN of the certificate"
+  value       = module.acm.acm_certificate_arn
+} 

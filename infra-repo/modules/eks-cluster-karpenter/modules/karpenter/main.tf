@@ -1,28 +1,4 @@
 ###############################################################################
-# Karpenter Module
-###############################################################################
-module "karpenter" {
-  count  = var.enable_karpenter ? 1 : 0
-  source = "terraform-aws-modules/eks/aws//modules/karpenter"
-
-  version                         = "20.8.4"
-  cluster_name                    = module.eks.cluster_name
-  enable_irsa                     = true
-  irsa_oidc_provider_arn          = module.eks.oidc_provider_arn
-  irsa_namespace_service_accounts = ["karpenter:karpenter"]
-  # Attach additional IAM policies to the Karpenter node IAM role
-  create_access_entry = false
-  iam_role_policies = {
-    "ec2spotfleetrole" = "${aws_iam_policy.karpenter_controller_policy[0].arn}"
-  }
-  node_iam_role_additional_policies = {
-    "AmazonEBSCSIDriverPolicy" = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  }
-
-  tags = var.tags
-}
-
-###############################################################################
 # Karpenter Controller Policy
 ###############################################################################
 resource "aws_iam_policy" "karpenter_controller_policy" {
@@ -45,7 +21,40 @@ resource "aws_iam_policy" "karpenter_controller_policy" {
       }
     ]
   })
+    depends_on = [ 
+    module.eks,
+  ]
 }
+
+###############################################################################
+# Karpenter Module
+###############################################################################
+module "karpenter" {
+  count  = var.enable_karpenter ? 1 : 0
+  source = "terraform-aws-modules/eks/aws//modules/karpenter"
+
+  version                         = "20.8.4"
+  cluster_name                    = module.eks.cluster_name
+  enable_irsa                     = true
+  irsa_oidc_provider_arn          = module.eks.oidc_provider_arn
+  irsa_namespace_service_accounts = ["karpenter:karpenter"]
+  # Attach additional IAM policies to the Karpenter node IAM role
+  create_access_entry = false
+  iam_role_policies = {
+    "ec2spotfleetrole" = "${aws_iam_policy.karpenter_controller_policy[0].arn}"
+  }
+  node_iam_role_additional_policies = {
+    "AmazonEBSCSIDriverPolicy" = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  }
+
+  tags = var.tags
+  depends_on = [ 
+    module.eks,
+    aws_iam_policy.karpenter_controller_policy
+  ]
+}
+
+
 
 ###############################################################################
 # Karpenter Helm + Data Resources
@@ -59,7 +68,7 @@ resource "helm_release" "karpenter" {
   repository_password = data.aws_ecrpublic_authorization_token.token.password
   chart               = "karpenter"
   version             = "1.0.0"
-  depends_on          = [module.karpenter, module.eks, module.eks-auth]
+  depends_on          = [module.karpenter, module.eks, module.eks-auth, aws_iam_policy.karpenter_controller_policy]
   wait                = true
   create_namespace    = true
   values = [
@@ -136,7 +145,7 @@ resource "helm_release" "karpenter-manifests" {
   name            = each.key
   chart           = "${path.module}/karpenter-manifests"
   wait            = true
-  depends_on      = [module.karpenter, helm_release.karpenter]
+  depends_on      = [module.karpenter, helm_release.karpenter, aws_iam_policy.karpenter_controller_policy]
   force_update    = true
   cleanup_on_fail = true
   set {
@@ -182,43 +191,5 @@ resource "helm_release" "karpenter-manifests" {
     cpu: "${each.value.limits.cpu}"
     memory: "${each.value.limits.memory}"
     EOT
-  ]
-}
-
-
-###############################################################################
-# Inflate deployment
-###############################################################################
-resource "kubectl_manifest" "karpenter_example_deployment" {
-  yaml_body = <<-YAML
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: inflate
-    spec:
-      replicas: 0
-      selector:
-        matchLabels:
-          app: inflate
-      template:
-        metadata:
-          labels:
-            app: inflate
-        spec:
-          terminationGracePeriodSeconds: 0
-          containers:
-            - name: inflate
-              image: public.ecr.aws/eks-distro/kubernetes/pause:3.7
-              resources:
-                requests:
-                  cpu: 1
-          tolerations:
-            - key: "CriticalAddonsOnly"
-              operator: "Exists"
-              effect: "NoSchedule"
-  YAML
-
-  depends_on = [
-    helm_release.karpenter
   ]
 }

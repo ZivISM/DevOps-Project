@@ -5,8 +5,7 @@ module "eks" {
   source                                   = "terraform-aws-modules/eks/aws"
   create                                   = var.eks_enabled
   version                                  = "20.8.4"
-  # cluster_name                             = "${var.project}-${var.environment}-cluster"
-  cluster_name                             = "myapp-cluster"
+  cluster_name                             = "${var.project}-${var.environment}-cluster"
   cluster_version                          = var.k8s_version
   cluster_endpoint_private_access          = true
   cluster_endpoint_public_access           = true
@@ -80,68 +79,116 @@ module "eks" {
 
   cloudwatch_log_group_retention_in_days = "7"
   cluster_enabled_log_types              = local.enabled_cluster_logs
-  depends_on                             = [module.vpc, 
-                                          #  null_resource.prep_vpn
+  depends_on                             = [
+                                            module.vpc, 
                                           ]
 
   }
 
-
-
-###############################################################################
-# EKS Auth
+  ###############################################################################
+# IAM
 ###############################################################################
 
-module "eks-auth" {
-  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "20.8.4"
+module "allow_eks_acceess_iam_policy" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "5.48.0"
+  name  = "allow-eks-access"
+  create_policy = true
 
-  manage_aws_auth_configmap = true
-
-  aws_auth_roles = local.merged_map_roles
-  aws_auth_users = var.map_users
-
-  aws_auth_accounts = var.map_accounts
-  depends_on        = [module.eks]
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+            "eks:DescribeCluster",
+        ]
+        Effect = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+    depends_on                             = [
+                                            module.vpc, 
+                                          ]
 }
 
 ###############################################################################
-# EBS CSI Driver
+# EKS Admin IAM Role
 ###############################################################################
-data "aws_iam_policy_document" "trust" {
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRoleWithWebIdentity"]
+module "eks_admins_iam_role" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version = "5.48.0"
 
-    principals {
-      type        = "Federated"
-      identifiers = [module.eks.oidc_provider_arn]
-    }
+  role_name         = "eks-admin"
+  create_role       = true
+  role_requires_mfa = false
 
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(module.eks.oidc_provider_arn, "/^(.*provider/)/", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
-    }
+  custom_role_policy_arns = [module.allow_eks_acceess_iam_policy.arn]
+  
+  trusted_role_arns = [
+    "arn:aws:iam::${module.vpc.vpc_owner_id}:root"
+  ]
 
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(module.eks.oidc_provider_arn, "/^(.*provider/)/", "")}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-  }
 }
 
-resource "aws_iam_role" "ebs_csi_role" {
-  name               = "AmazonEKS_EBS_CSI_Driver_Role-${var.environment}"
-  assume_role_policy = data.aws_iam_policy_document.trust.json
+###############################################################################
+# EKS User IAM User
+###############################################################################
+# module "eks_iam_user" {
+#     source = "terraform-aws-modules/iam/aws//modules/iam-user"
+#     version = "5.48.0"
 
-  tags = {
-    Name = "EBS CSI Driver Role"
-  }
+#     name                          = "eks-user"
+#     create_iam_access_key         = false
+#     create_iam_user_login_profile = false    
+
+#     force_destroy = true
+# }
+
+
+###############################################################################
+# EKS Admins IAM Group
+###############################################################################
+module "allow_assume_eks_admins_iam_policy" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "5.48.0"
+  name  = "allow-assume-eks-admin-iam-role"
+  create_policy = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+            "sts:AssumeRole",
+        ]
+        Effect = "Allow"
+        Resource = module.eks_admins_iam_role.iam_role_arn
+      },
+    ]
+  })
 }
 
-resource "aws_iam_role_policy_attachment" "ebs_csi_policy_attachment" {
-  role       = aws_iam_role.ebs_csi_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+###############################################################################
+# EKS Admins IAM Group
+###############################################################################
+module "eks_admins_iam_group" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
+  version = "5.48.0"
+  
+  name                              = "eks-admins"
+  attach_iam_self_management_policy = false
+  create_group                      = true
+  # group_users                       = [module.eks_iam_user.iam_user_name]
+  custom_group_policy_arns          = [module.allow_assume_eks_admins_iam_policy.arn]
+}
+
+###############################################################################
+# EKS Admins IAM Group Membership
+###############################################################################
+resource "aws_iam_user_group_membership" "localadmin_to_eks_admins" {
+  user = "localadmin"
+  groups = [
+    module.eks_admins_iam_group.group_name
+  ]
 }
