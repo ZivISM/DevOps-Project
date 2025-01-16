@@ -12,6 +12,9 @@
     "react-toastify": "^11.0.2",
     "styled-components": "^6.1.14"
   },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
