@@ -3,7 +3,7 @@ on:
   push:
     branches: [ development ]
     paths:
-      - 'source/frontend/**'
+      - 'app-repo/source/frontend/**'
 
 
 env:
