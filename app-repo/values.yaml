@@ -1,15 +1,18 @@
 # Global settings
 global:
-  environment: production
+  environment: development
   namespace: default
+
+
 
 # Frontend configuration
 frontend:
   enabled: true
-  replicaCount: 2
+  name: frontend
+  replicaCount: 1
   image:
-    repository: ################################
-    tag: #####################################
+    repository: zivism/habit-tracker-frontend
+    tag: v0.1.8
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -23,26 +26,29 @@ frontend:
       memory: 256Mi
   ingress:
     enabled: true
-    className: "alb"
+    className: "nginx"
     annotations:
-      kubernetes.io/ingress.class: alb
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
     hosts:
-      - host: app.example.com
+      - host: habits.zivoosh.online
         paths:
           - path: /
             pathType: Prefix
-
+            
 # Backend API configuration
 backend:
   enabled: true
-  replicaCount: 2
+  replicaCount: 1
   image:
-    repository: ################################
-    tag: #####################################
+    repository: zivism/habit-tracker-backend
+    tag: v0.1.7
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
-    port: 8080
+    port: 5000
   resources:
     limits:
       cpu: 1000m
@@ -50,63 +56,54 @@ backend:
     requests:
       cpu: 500m
       memory: 512Mi
-  ingress:
-    enabled: true
-    className: "alb"
-    annotations:
-      kubernetes.io/ingress.class: alb
-    hosts:
-      - host: api.example.com
-        paths:
-          - path: /
-            pathType: Prefix
+
   autoscaling:
     enabled: true
     minReplicas: 2
     maxReplicas: 10
     targetCPUUtilization: 80
     targetMemoryUtilization: 80
-  
-  pdb:
-    enabled: true
-    minAvailable: 1
-  
-  probes:
-    liveness:
-      enabled: true
-      path: /health
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    readiness:
-      enabled: true
-      path: /ready
-      initialDelaySeconds: 5
-      periodSeconds: 5
-  
-  networkPolicy:
-    enabled: true
-    
-  # Add init container configuration
-  initContainers:
-    enabled: true
-    waitForDb:
-      image: busybox:1.28
-      command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql 5432; do echo waiting for database; sleep 2; done;']
 
 # Database configuration
 postgresql:
   enabled: true
+  namespaceOverride: "habitspace"
   auth:
-    username: #####################################
-    password: #####################################
-    database: #####################################
+    username: postgres
+    postgresPassword: "postgres"
+    database: habits
   primary:
+    persistence:
+      storageClass: "standard"
+      size: 10Gi
     initdb:
       scripts:
-        - content of 01_init_schema.sql
-        - content of 02_seed_data.sql
-    persistence:
-      size: 10Gi
+        init.sql: |
+          -- Enable UUID extension
+          CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+          
+          -- Create habits table
+          CREATE TABLE IF NOT EXISTS habits (
+              id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+              name VARCHAR(255) NOT NULL,
+              streak INTEGER DEFAULT 0,
+              completed BOOLEAN DEFAULT FALSE,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              last_completed_at TIMESTAMP WITH TIME ZONE
+          );
+          
+          -- Add some initial data if table is empty
+          DO $$ 
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM habits) THEN
+              INSERT INTO habits (name, streak, completed) VALUES
+                ('Morning Meditation', 0, false),
+                ('Read 30 Minutes', 0, false),
+                ('Exercise', 0, false);
+            END IF;
+          END $$;
+  persistence:
+    size: 10Gi
   resources:
     limits:
       cpu: 1000m
@@ -115,23 +112,49 @@ postgresql:
       cpu: 500m
       memory: 512Mi
 
+
+pdb:
+  enabled: false
+  minAvailable: 1
 # ConfigMap data
 configMap:
   data:
     LOG_LEVEL: "info"
     CACHE_TTL: "3600"
     API_VERSION: "v1"
-    CORS_ALLOWED_ORIGINS: "https://app.example.com"
+    CORS_ALLOWED_ORIGINS: "http://localhost:8080,https://habits.zivoosh.online"
+    DB_HOST: "habit-tracker-postgresql"
+    DB_PORT: "5432"
+    DB_NAME: "habits"
+    DB_USER: "postgres"
+    DB_PASSWORD: "postgres"
+    SERVER_PORT: "5000"
+    API_URL: "http://habit-tracker-backend:5000"
 
 # Secret data
 secrets:
   data:
     JWT_SECRET: "your-jwt-secret"
     API_KEY: "your-api-key"
-    REDIS_PASSWORD: "redis-password" 
 
 monitoring:
-  enabled: true
+  enabled: false
   prometheus:
     scrapeInterval: 15s
     path: /metrics 
+
+# Add init container configuration
+initContainers:
+  enabled: true
+  waitForDb:
+    image: busybox:1.28
+    command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql 5432; do echo waiting for database; sleep 2; done;']
+
+# Rest of your values.yaml content
+networkPolicy:
+  enabled: true 
+
+namespace:
+  name: habitspace
+  labels:
+    environment: development 

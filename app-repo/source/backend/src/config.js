@@ -1,14 +1,15 @@
 // app-repo/source/backend/src/config.js
-module.exports = {
+export const config = {
     db: {
-      host: process.env.DB_HOST || 'postgresql.default.svc.cluster.local', // Kubernetes service name
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || 'habittracker',
+      host: process.env.DB_HOST || 'postgresql',
+      port: parseInt(process.env.DB_PORT) || 5432,
+      database: process.env.DB_NAME || 'habits',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: false
     },
     server: {
-      port: process.env.PORT || 5000
+      port: parseInt(process.env.SERVER_PORT) || 5000
     }
-  };
+};
+  
