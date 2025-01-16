@@ -3,11 +3,7 @@ global:
   environment: development
   namespace: default
 
-# Import other value files
-# imports:
-  # - values/frontend_values.yaml
-  # - values/backend_values.yaml
-  # - values/monitoring_values.yaml
+
 
 # Frontend configuration
 frontend:
