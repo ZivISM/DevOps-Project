@@ -4,10 +4,7 @@ on:
     branches: [ development ]
     paths:
       - 'source/frontend/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'source/frontend/**'
+
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-frontend

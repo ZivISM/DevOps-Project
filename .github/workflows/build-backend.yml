@@ -3,12 +3,7 @@ on:
   push:
     branches: [ development ]
     paths:
-      - 'source/backend/**'
-      - '.github/workflows/build-backend.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'source/backend/**'
+      - 'app-repo/source/backend/**'
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-backend
