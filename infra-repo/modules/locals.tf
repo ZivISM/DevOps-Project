@@ -48,6 +48,9 @@ locals {
 data "aws_caller_identity" "current" {}
 
 
+
 locals {
-  karpenter_discovery_tag = "${var.project}-${var.environment}"
+  eks_cluster_endpoint = try(module.eks.cluster_endpoint, "")
+  eks_cluster_ca_cert  = try(base64decode(module.eks.cluster_certificate_authority_data), "")
+  eks_cluster_name     = try(module.eks.cluster_name, "")
 }

@@ -10,9 +10,10 @@ resource "aws_route53_zone" "main" {
 ###############################################################################
 # Route53 Records
 ###############################################################################
-resource "aws_route53_record" "app" {
+# Wildcard record for all subdomains
+resource "aws_route53_record" "wildcard" {
   zone_id = aws_route53_zone.main.zone_id
-  name    = "app.${var.domain_name}"
+  name    = "*.${var.domain_name}"  # This will match any subdomain
   type    = "CNAME"
   ttl     = 300
   records = [kubernetes_ingress_v1.alb_nginx.status.0.load_balancer.0.ingress.0.hostname]
@@ -55,10 +56,10 @@ module "acm" {
   subject_alternative_names = [
     "*.${var.domain_name}",
     "argocd.${var.domain_name}",
-    "app.${var.domain_name}"
+    "prometheus.${var.domain_name}",
   ]
 
-  wait_for_validation = true
+  wait_for_validation = false
 
   tags = {
     Name        = var.domain_name
@@ -66,7 +67,7 @@ module "acm" {
     Terraform   = "true"
   }
 
-  depends_on = [aws_route53_zone.main]
+  depends_on = [aws_route53_zone.main, helm_release.nginx]
 }
 
 
@@ -153,6 +154,6 @@ resource "helm_release" "nginx" {
     module.eks, 
     module.karpenter,
     helm_release.karpenter,
-    helm_release.karpenter-manifests
+    helm_release.karpenter-manifests,
   ]
 }

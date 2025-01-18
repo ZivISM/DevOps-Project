@@ -66,9 +66,8 @@ module "eks_blueprints_addons" {
  }
  
  depends_on = [
-    module.eks,
     module.ebs_csi_driver_irsa,
-    helm_release.karpenter_manifests
+    helm_release.karpenter-manifests
   ]
 }
 
@@ -97,6 +96,6 @@ module "ebs_csi_driver_irsa" {
 
   depends_on = [
     module.eks,
-    helm_release.karpenter_manifests
+    module.karpenter,
   ]
 }

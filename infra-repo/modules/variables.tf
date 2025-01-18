@@ -1,94 +1,85 @@
+##################################################
 # GENERAL
+##################################################
+
 variable "project" {
-  description = "Name of the project - this is used to generate names for resources"
+  description = "The project this cluster represents"
   type        = string
 }
 
 variable "environment" {
-  description = "The main environment this cluster represents"
+  description = "The environment this cluster represents"
   type        = string
 }
 
-
-variable "tags" {
-  description = "List of tags to assign to resources created in this module"
-  type        = map(any)
+variable "environment_short" {
+  description = "The short name of the environment"
+  type        = string
 }
+
+# variable "additional_environments" {
+#   description = "The additional environments this cluster represents"
+#   type        = list(string)
+# }
 
 variable "aws_region" {
-  description = "This is used to define where resources are created and used"
+  description = "The AWS region to create resources in"
   type        = string
 }
 
-
-# BACKEND
-
-variable "bucket" {
-  description = "Name of the S3 bucket for Terraform state"
-  type        = string
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
 }
 
-variable "key" {
-  description = "Path to the state file inside the S3 bucket"
-  type        = string
-}
-
-variable "dynamodb_table" {
-  description = "Name of DynamoDB table for state locking"
-  type        = string
-}
-
-variable "encrypt" {
-  description = "Enable server-side encryption of state file"
-  type        = bool
-  default     = true
-}
-
-
+##################################################
 # NETWORK
+##################################################
 
 variable "vpc_cidr" {
-  description = "Cidr of the vpc we will create in the format of X.X.X.X/16"
+  description = "The CIDR block for the VPC"
   type        = string
 }
 
 variable "num_zones" {
-  description = "How many zones should we utilize for the eks nodes"
+  description = "The number of availability zones to use"
   type        = number
-  default     = 2
 }
 
 variable "single_nat_gateway" {
-  description = "Dictates if it is one nat gateway or multiple"
+  description = "Whether to use a single NAT gateway"
   type        = bool
-
 }
 
 variable "enable_nat_gateway" {
-  description = "Dictates if nat gateway is enabled or not"
+  description = "Whether to enable NAT gateways"
   type        = bool
 }
 
-variable "karpenter_tag" {
-  description = "Tags used by karpenter"
-  type = object({
-    key   = string
-    value = string
-  })
+variable "domain_name" {
+  description = "The domain name for the application"
+  type        = string
 }
 
-variable "domain_name" {
-  description = "The domain name to use for the application"
-  type        = string
-} 
-
+##################################################
 # EKS
+##################################################
+
+variable "eks_enabled" {
+  description = "Whether to enable EKS"
+  type        = bool
+}
+
+variable "k8s_version" {
+  description = "The Kubernetes version to use"
+  type        = string
+}
 
 variable "eks_managed_node_groups" {
-  description = "(Optional) set of additional node pools for the cluster"
+  description = "The managed node groups to use"
   type        = any
-  default     = {}
 }
+
 
 variable "map_users" {
   description = "Additional IAM users to add to the aws-auth configmap."
@@ -116,17 +107,7 @@ variable "map_roles" {
   default = []
 }
 
-variable "eks_enabled" {
-  description = "Controls the creation of the eks cluster"
-  type        = bool
 
-}
-
-variable "k8s_version" {
-  description = "K8s version that the cluster will use"
-  type        = string
-
-}
 
 variable "cluster_addons" {
   description = "Which EKS cluster addons should be installed and their configuration"
@@ -148,23 +129,25 @@ variable "enable_metrics_server" {
 
 }
 
-# variable "enable_cluster_autoscaler" {
-#   description = "Dictates whether the cluster autoscaler will be installed"
-#   type        = bool
 
-# }
 
 variable "enable_aws_efs_csi_driver" {
   description = "Dictates whether the EFS CSI Driver will be installed"
   type        = bool
 }
 
+variable "nginx_controller_service_type" {
+  description = "The service type for the nginx controller"
+  type        = string
+}
+
+##################################################
 # KARPENTER
+##################################################
 
 variable "enable_karpenter" {
-  description = "Dictates whether Karpenter will be installed"
+  description = "Whether to enable Karpenter"
   type        = bool
-
 }
 
 variable "fargate_additional_profiles" {
@@ -173,6 +156,13 @@ variable "fargate_additional_profiles" {
 
 }
 
+variable "karpenter_tag" {
+  description = "Tags used by karpenter"
+  type = object({
+    key   = string
+    value = string
+  })
+}
 
 variable "karpenter_config" {
   description = "Configuration for karpenter node pools"
@@ -219,25 +209,6 @@ variable "karpenter_config" {
 }
 
 variable "github_repo" {
-    default = "https://github.com/ZivISM/DevOps-Project.git"  
-}
-
-variable "nginx_controller_service_type" {
-  default = "LoadBalancer"
-}
-
-
-variable "base_url" {
-  description = "The base url for the application"
-  type        = string
-}
-
-# variable "certmanager_enabled" {
-#   description = "Dictates whether certmanager will be installed"
-#   type        = bool
-# }
-
-variable "environment_short" {
-  description = "The short name of the environment"
+  description = "The GitHub repository to use"
   type        = string
 }

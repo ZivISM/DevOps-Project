@@ -3,7 +3,7 @@
 ###############################################################################
 resource "aws_iam_policy" "karpenter_controller_policy" {
   count       = var.enable_karpenter ? 1 : 0
-  name        = "karpenter_controller_policy_${var.environment}"
+  name        = "karpenter_controller_policy_${var.project}-${var.environment}-cluster"
   description = "Policy to grant IAM role access to create Service-Linked Role for EC2 Spot Instances"
 
   policy = jsonencode({
@@ -68,7 +68,7 @@ resource "helm_release" "karpenter" {
   repository_password = data.aws_ecrpublic_authorization_token.token.password
   chart               = "karpenter"
   version             = "1.0.0"
-  depends_on          = [module.karpenter, module.eks, module.eks-auth, aws_iam_policy.karpenter_controller_policy]
+  depends_on          = [module.karpenter, module.eks, aws_iam_policy.karpenter_controller_policy]
   wait                = true
   create_namespace    = true
   values = [

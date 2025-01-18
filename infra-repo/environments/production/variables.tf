@@ -1,39 +1,3 @@
-variable "region" {
-  default = "us-east-1"
-}
-
-variable "cluster_name" {
-  default = "eks-cluster"
-}
-
-variable "app_name" {
-  default = "myapp"
-}
-
-
-variable "ssh-key" {
-    default = "zivoosh-key"
-}
-
-
-variable "domain_name" {
-  description = "The domain name for the application"
-  default     = "zivoosh.online"
-}
-
-
-
-
-
-variable "email" {
-  default = "zivismailov@gmail.com"
-}
-
-
-###############################################################################
-# Best Practices
-###############################################################################
-
 # GENERAL
 variable "project" {
   description = "Name of the project - this is used to generate names for resources"
@@ -44,18 +8,7 @@ variable "environment" {
   description = "The main environment this cluster represents"
   type        = string
 }
-variable "additional_environments" {
-  description = "The environments we are creating in this cluster - used to generate names for resource"
-  type        = list(string)
-  default     = []
 
-}
-variable "additional_cerberus_environments" {
-  description = "The environments we are creating in this cluster - used to generate names for resource"
-  type        = list(string)
-  default     = []
-
-}
 
 variable "tags" {
   description = "List of tags to assign to resources created in this module"
@@ -66,6 +19,32 @@ variable "aws_region" {
   description = "This is used to define where resources are created and used"
   type        = string
 }
+
+
+# BACKEND
+
+variable "bucket" {
+  description = "Name of the S3 bucket for Terraform state"
+  type        = string
+}
+
+variable "key" {
+  description = "Path to the state file inside the S3 bucket"
+  type        = string
+}
+
+variable "dynamodb_table" {
+  description = "Name of DynamoDB table for state locking"
+  type        = string
+}
+
+variable "encrypt" {
+  description = "Enable server-side encryption of state file"
+  type        = bool
+  default     = true
+}
+
+
 # NETWORK
 
 variable "vpc_cidr" {
@@ -88,6 +67,15 @@ variable "single_nat_gateway" {
 variable "enable_nat_gateway" {
   description = "Dictates if nat gateway is enabled or not"
   type        = bool
+}
+
+variable "karpenter_tag" {
+  description = "Tags used by karpenter"
+  type = object({
+    key   = string
+    value = string
+  })
+
 }
 
 
@@ -157,11 +145,11 @@ variable "enable_aws_load_balancer_controller" {
 
 # }
 
-variable "enable_cluster_autoscaler" {
-  description = "Dictates whether the cluster autoscaler will be installed"
-  type        = bool
+# variable "enable_cluster_autoscaler" {
+#   description = "Dictates whether the cluster autoscaler will be installed"
+#   type        = bool
 
-}
+# }
 
 variable "enable_aws_efs_csi_driver" {
   description = "Dictates whether the EFS CSI Driver will be installed"
@@ -174,6 +162,11 @@ variable "enable_karpenter" {
   description = "Dictates whether Karpenter will be installed"
   type        = bool
 
+}
+
+variable "certmanager_enabled" {
+  description = "Dictates whether certmanager will be installed"
+  type        = bool
 }
 
 variable "fargate_additional_profiles" {
@@ -190,4 +183,13 @@ variable "karpenter_tag" {
   })
 
 }
+
+variable "github_repo" {
+    default = "https://github.com/ZivISM/DevOps-Project.git"  
+}
+
+variable "nginx_controller_service_type" {
+  default = "LoadBalancer"
+}
+
 

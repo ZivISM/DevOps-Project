@@ -29,10 +29,9 @@ server:
       kubernetes.io/ingress.class: nginx
 
 
-# Global settings that apply to all ArgoCD components
 global:
   nodeSelector:
-    workload-type: system-critical
+    karpenter.sh/nodepool: system-critical
 
   tolerations:
     - key: "CriticalWorkload"
@@ -40,11 +39,10 @@ global:
       value: "true"
       effect: "NoSchedule"
 
-# Component-specific configurations
 
 controller:
   nodeSelector:
-    workload-type: system-critical
+    karpenter.sh/nodepool: system-critical
   tolerations:
     - key: "CriticalWorkload"
       operator: "Equal"
@@ -53,7 +51,7 @@ controller:
 
 repoServer:
   nodeSelector:
-    workload-type: system-critical
+    karpenter.sh/nodepool: system-critical
   tolerations:
     - key: "CriticalWorkload"
       operator: "Equal"
@@ -62,7 +60,7 @@ repoServer:
 
 applicationSet:
   nodeSelector:
-    workload-type: system-critical
+    karpenter.sh/nodepool: system-critical
   tolerations:
     - key: "CriticalWorkload"
       operator: "Equal"
@@ -71,7 +69,7 @@ applicationSet:
 
 redis:
   nodeSelector:
-    workload-type: system-critical
+    karpenter.sh/nodepool: system-critical
   tolerations:
     - key: "CriticalWorkload"
       operator: "Equal"
@@ -148,92 +146,36 @@ EOF
 }
 
 ###############################################################################
-# ArgoCD Helm
+# ArgoCD Application
 ###############################################################################
 
-resource "kubectl_manifest" "habits" {
-  yaml_body = <<YAML
-# gitops-repo/base/applications/dev.yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: habitspace-dev
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: ${var.github_repo}
-    targetRevision: development
-    path: app-repo/
-    helm:
-      valueFiles:
-        - ../environments/development/values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: habitspace-dev
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+# resource "kubectl_manifest" "habits" {
+#   yaml_body = <<YAML
+# # gitops-repo/base/applications/dev.yaml
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: ${var.project}-${var.environment}
+#   namespace: argocd
+# spec:
+#   project: ${var.project}
+#   source:
+#     repoURL: ${var.github_repo}
+#     targetRevision: ${var.environment}
+#     path: app-repo/
+#     helm:
+#       valueFiles:
+#         - ../environments/${var.environment}/values.yaml
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: habitspace-${var.environment}
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+# YAML
 
----
-# gitops-repo/base/applications/staging.yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: habitspace-staging
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: ${var.github_repo}
-    targetRevision: main
-    path: app-repo/
-    helm:
-      valueFiles:
-        - ../environments/staging/values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: habitspace-staging
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: false  # Require manual approval for staging
-    syncOptions:
-      - CreateNamespace=true
-
----
-# gitops-repo/base/applications/prod.yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: habitspace-prod
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: ${var.github_repo}
-    targetRevision: main
-    path: app-repo/
-    helm:
-      valueFiles:
-        - ../environments/production/values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: habitspace-prod
-  syncPolicy:
-    automated:
-      prune: false  # Disable automatic pruning for production
-      selfHeal: false  # Require manual approval for production
-    syncOptions:
-      - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true  # Only apply changes that are out of sync
-  ignoreDifferences:
-    - group: apps
-      kind: Deployment
-      jsonPointers:
-        - /spec/replicas  # Ignore replica count differences in prod
-YAML
-}
+# depends_on = [ helm_release.argocd ]
+# }

@@ -5,7 +5,7 @@ module "eks" {
   source                                   = "terraform-aws-modules/eks/aws"
   create                                   = var.eks_enabled
   version                                  = "20.8.4"
-  cluster_name                             = "${var.project}-${var.environment}-cluster"
+  cluster_name                             = "${var.project}-${var.environment_short}-cluster"
   cluster_version                          = var.k8s_version
   cluster_endpoint_private_access          = true
   cluster_endpoint_public_access           = true
@@ -108,8 +108,17 @@ module "allow_eks_acceess_iam_policy" {
     ]
   })
     depends_on                             = [
-                                            module.vpc, 
+                                            module.eks, 
                                           ]
+}
+
+###############################################################################
+# EKS-AUTH
+###############################################################################
+module "eks_auth" {
+  source = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "20.8.4"
+  aws_auth_roles = local.merged_map_roles
 }
 
 ###############################################################################

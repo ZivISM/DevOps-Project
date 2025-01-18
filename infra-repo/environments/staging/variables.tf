@@ -75,12 +75,9 @@ variable "karpenter_tag" {
     key   = string
     value = string
   })
+
 }
 
-variable "domain_name" {
-  description = "The domain name to use for the application"
-  type        = string
-} 
 
 # EKS
 
@@ -142,11 +139,11 @@ variable "enable_aws_load_balancer_controller" {
 
 }
 
-variable "enable_metrics_server" {
-  description = "Dictates whether the metrics server will be installed"
-  type        = bool
+# variable "enable_metrics_server" {
+#   description = "Dictates whether the metrics server will be installed"
+#   type        = bool
 
-}
+# }
 
 # variable "enable_cluster_autoscaler" {
 #   description = "Dictates whether the cluster autoscaler will be installed"
@@ -167,55 +164,24 @@ variable "enable_karpenter" {
 
 }
 
+variable "certmanager_enabled" {
+  description = "Dictates whether certmanager will be installed"
+  type        = bool
+}
+
 variable "fargate_additional_profiles" {
   description = "Additional Profiles to add to fargate"
   type        = any
 
 }
 
+variable "karpenter_tag" {
+  description = "Tags used by karpenter"
+  type = object({
+    key   = string
+    value = string
+  })
 
-variable "karpenter_config" {
-  description = "Configuration for karpenter node pools"
-  type = map(object({
-    tainted    = optional(bool)
-    core       = optional(bool)
-    disruption = optional(bool)
-    arc        = optional(bool)
-    amiFamily  = string
-    instance_category = object({
-      operator = string
-      values   = list(string)
-    })
-    instance_cpu = object({
-      operator = string
-      values   = list(string)
-    })
-    instance_hypervisor = object({
-      operator = string
-      values   = list(string)
-    })
-    instance_generation = object({
-      operator = string
-      values   = list(string)
-    })
-    capacity_type = object({
-      operator = string
-      values   = list(string)
-    })
-
-    instance_family = optional(object({
-      operator  = string
-      values    = optional(list(string))
-      minValues = optional(number)
-    }))
-
-    limits = object({
-      cpu               = string
-      memory            = string
-      ephemeral_storage = string
-    })
-  }))
-  default = {}
 }
 
 variable "github_repo" {
@@ -227,17 +193,3 @@ variable "nginx_controller_service_type" {
 }
 
 
-variable "base_url" {
-  description = "The base url for the application"
-  type        = string
-}
-
-# variable "certmanager_enabled" {
-#   description = "Dictates whether certmanager will be installed"
-#   type        = bool
-# }
-
-variable "environment_short" {
-  description = "The short name of the environment"
-  type        = string
-}
