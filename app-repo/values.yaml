@@ -27,10 +27,7 @@ frontend:
     enabled: true
     className: nginx
     annotations:
-      kubernetes.io/ingress.class: "nginx"
-      # Handle both frontend and API routes
-      nginx.ingress.kubernetes.io/rewrite-target: /$1
-      nginx.ingress.kubernetes.io/use-regex: "true"
+
     hosts:
       - host: habits.zivoosh.online
         paths:
@@ -38,14 +35,14 @@ frontend:
             pathType: Prefix
             backend:
               service:
-                name: habit-tracker-backend
+                name: habitspace-dev-backend-service
                 port:
                   number: 5000
           - path: /(.*)
             pathType: Prefix
             backend:
               service:
-                name: habit-tracker-frontend
+                name: habitspace-dev-frontend
                 port:
                   number: 80
 

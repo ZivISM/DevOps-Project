@@ -114,9 +114,12 @@ resource "helm_release" "nginx" {
   create_namespace = true
   # values           = [file("${path.module}/values/ingress-nginx.yaml")]
   values = [<<EOF
+  controller: 
     service:
       type: ClusterIP
-
+    ingressClass:
+      name: nginx
+      enabled: true
   EOF
   ]
   

@@ -8,7 +8,7 @@ import styled from 'styled-components';
 const isLocalDevelopment = window.location.hostname === 'localhost';
 const API_URL = isLocalDevelopment 
   ? 'http://localhost:5000'  // Use HTTP for local development
-  : 'http://habitspace.zivoosh.online/api';
+  : 'http://habits.zivoosh.online/api';
 
 console.log('Using API URL:', API_URL); // For debugging
 
