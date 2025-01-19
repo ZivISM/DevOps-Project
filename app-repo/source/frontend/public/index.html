@@ -4,84 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#3B82F6" />
-    
-    <!-- Primary Meta Tags -->
-    <title>Habit Tracker - Build Better Habits</title>
-    <meta name="title" content="Habit Tracker - Build Better Habits">
-    <meta name="description" content="Track and build lasting habits with our simple, effective habit tracking app. Stay motivated and achieve your goals." />
-    
-    <!-- Favicon -->
+    <title>Habit Tracker</title>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://yourwebsite.com/" />
-    <meta property="og:title" content="Habit Tracker - Build Better Habits" />
-    <meta property="og:description" content="Track and build lasting habits with our simple, effective habit tracking app." />
-    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://yourwebsite.com/" />
-    <meta property="twitter:title" content="Habit Tracker - Build Better Habits" />
-    <meta property="twitter:description" content="Track and build lasting habits with our simple, effective habit tracking app." />
-    <meta property="twitter:image" content="%PUBLIC_URL%/og-image.png" />
-
-    <!-- Preconnect to important third-party domains -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
-    <!-- Font (optional - adjust based on your needs) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- PWA support -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    
-    <!-- Optional: Add custom CSS -->
     <style>
       body {
         margin: 0;
         padding: 0;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         background: #f0f2f5;
-        color: #1a1a1a;
-        line-height: 1.5;
       }
-      
-      /* Add a nice loading state */
       #root:empty {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background: #f9fafb;
-      }
-      
-      #root:empty::after {
-        content: "";
-        width: 50px;
-        height: 50px;
-        border: 3px solid #e5e7eb;
-        border-radius: 50%;
-        border-top-color: #3B82F6;
-        animation: loading 0.75s ease infinite;
-      }
-      
-      @keyframes loading {
-        to {
-          transform: rotate(360deg);
-        }
       }
     </style>
   </head>
   <body>
-    <noscript>
-      <div style="padding: 20px; text-align: center;">
-        <h1>JavaScript Required</h1>
-        <p>We're sorry, but this app requires JavaScript to function. Please enable JavaScript to continue.</p>
-      </div>
-    </noscript>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
   </body>
-</html> 
+</html>

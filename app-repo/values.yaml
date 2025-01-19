@@ -74,7 +74,7 @@ postgresql:
     database: habits
   primary:
     persistence:
-      storageClass: gp2
+      storageClass:  gp2
       size: 10Gi
     initdb:
       scripts:
