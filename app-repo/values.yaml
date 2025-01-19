@@ -12,7 +12,7 @@ frontend:
   replicaCount: 1
   image:
     repository: zivism/habit-tracker-frontend
-    tag: 1b5fa75f0a6047be7420db20c0c4a9e633b22bf0
+    tag: 9c3103bac3770dfe3028e01317417a582e0c4ba7
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
