@@ -11,5 +11,5 @@ dependencies:
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
   - name: common
-    version: "2.x.x"  # Use the latest 2.x version
+    version: "2.27.0"  
     repository: "https://charts.bitnami.com/bitnami"
