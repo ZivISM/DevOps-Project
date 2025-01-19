@@ -1,7 +1,6 @@
 backend:
   image:
     tag: v0.1.7
-
-frontend: 
+frontend:
   image:
-    tag: v0.1.8
+    tag: 9c3103bac3770dfe3028e01317417a582e0c4ba7
