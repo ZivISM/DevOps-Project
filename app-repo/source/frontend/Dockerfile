@@ -1,9 +1,7 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
-# First copy package files for better caching
 COPY package*.json ./
 RUN npm install
-# Then copy the rest of the application
 COPY . .
 RUN npm run build
 
