@@ -1,5 +1,6 @@
 import express from 'express';
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { config } from '../config.js';
 
 const router = express.Router();
