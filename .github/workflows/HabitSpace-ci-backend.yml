@@ -42,7 +42,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITOPS_PAT }}
         run: |
           # Clone GitOps repo
-          git clone https://oauth2:${GH_TOKEN}@github.com/ZivISM/DevOps-Project.git gitops
+          git clone -b development https://oauth2:${GH_TOKEN}@github.com/ZivISM/DevOps-Project.git gitops
           cd gitops
           
           # Update image tag in values.yaml
@@ -53,4 +53,4 @@ jobs:
           git config user.email "actions@github.com"
           git add values.yaml
           git commit -m "Update backend image to ${GITHUB_SHA} for development environment"
-          git push# Updated workflow
+          git push origin development
