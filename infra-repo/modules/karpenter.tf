@@ -1,4 +1,32 @@
 ###############################################################################
+# Karpenter Controller Policy
+###############################################################################
+resource "aws_iam_policy" "karpenter_controller_policy" {
+  count       = var.enable_karpenter ? 1 : 0
+  name        = "karpenter_controller_policy_${var.project}-${var.environment}-cluster"
+  description = "Policy to grant IAM role access to create Service-Linked Role for EC2 Spot Instances"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "iam:CreateServiceLinkedRole"
+        Resource = "arn:aws:iam::*:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot*"
+        Condition = {
+          StringLike = {
+            "iam:AWSServiceName" = "spot.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+    depends_on = [ 
+    module.eks,
+  ]
+}
+
+###############################################################################
 # Karpenter Module
 ###############################################################################
 module "karpenter" {
@@ -20,32 +48,13 @@ module "karpenter" {
   }
 
   tags = var.tags
+  depends_on = [ 
+    module.eks,
+    aws_iam_policy.karpenter_controller_policy
+  ]
 }
 
-###############################################################################
-# Karpenter Controller Policy
-###############################################################################
-resource "aws_iam_policy" "karpenter_controller_policy" {
-  count       = var.enable_karpenter ? 1 : 0
-  name        = "karpenter_controller_policy_${var.environment}"
-  description = "Policy to grant IAM role access to create Service-Linked Role for EC2 Spot Instances"
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = "iam:CreateServiceLinkedRole"
-        Resource = "arn:aws:iam::*:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot*"
-        Condition = {
-          StringLike = {
-            "iam:AWSServiceName" = "spot.amazonaws.com"
-          }
-        }
-      }
-    ]
-  })
-}
 
 ###############################################################################
 # Karpenter Helm + Data Resources
@@ -59,7 +68,7 @@ resource "helm_release" "karpenter" {
   repository_password = data.aws_ecrpublic_authorization_token.token.password
   chart               = "karpenter"
   version             = "1.0.0"
-  depends_on          = [module.karpenter, module.eks, module.eks-auth]
+  depends_on          = [module.karpenter, module.eks, aws_iam_policy.karpenter_controller_policy]
   wait                = true
   create_namespace    = true
   values = [
@@ -136,7 +145,7 @@ resource "helm_release" "karpenter-manifests" {
   name            = each.key
   chart           = "${path.module}/karpenter-manifests"
   wait            = true
-  depends_on      = [module.karpenter, helm_release.karpenter]
+  depends_on      = [module.karpenter, helm_release.karpenter, aws_iam_policy.karpenter_controller_policy]
   force_update    = true
   cleanup_on_fail = true
   set {
@@ -182,43 +191,5 @@ resource "helm_release" "karpenter-manifests" {
     cpu: "${each.value.limits.cpu}"
     memory: "${each.value.limits.memory}"
     EOT
-  ]
-}
-
-
-###############################################################################
-# Inflate deployment
-###############################################################################
-resource "kubectl_manifest" "karpenter_example_deployment" {
-  yaml_body = <<-YAML
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: inflate
-    spec:
-      replicas: 0
-      selector:
-        matchLabels:
-          app: inflate
-      template:
-        metadata:
-          labels:
-            app: inflate
-        spec:
-          terminationGracePeriodSeconds: 0
-          containers:
-            - name: inflate
-              image: public.ecr.aws/eks-distro/kubernetes/pause:3.7
-              resources:
-                requests:
-                  cpu: 1
-          tolerations:
-            - key: "CriticalAddonsOnly"
-              operator: "Exists"
-              effect: "NoSchedule"
-  YAML
-
-  depends_on = [
-    helm_release.karpenter
   ]
 }

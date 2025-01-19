@@ -91,4 +91,6 @@ module "vpc_endpoints" {
       subnet_ids          = module.vpc.private_subnets
     }
   }
+
+  depends_on = [module.eks]
 }

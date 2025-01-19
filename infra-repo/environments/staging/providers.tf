@@ -8,7 +8,7 @@ provider "aws" {
 
 # Your existing AWS provider (if different region)
 provider "aws" {
-  region = var.region  # or your specific region
+  region = var.aws_region
 }
 
 ###############################################################################
@@ -18,11 +18,11 @@ terraform {
   required_providers {
     kubectl = {
       source = "gavinbunney/kubectl"
-      version = "1.19.0"
+      version = ">= 1.18.0"
     }
     helm = {
       source = "hashicorp/helm"
-      version = "2.17.0"
+      version = ">= 2.6.0"
     }
     tls = {
       source  = "hashicorp/tls"

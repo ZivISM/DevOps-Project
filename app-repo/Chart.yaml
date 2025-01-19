@@ -1,6 +1,6 @@
 apiVersion: v2
-name: HabitTracker
-description: A Helm chart for deploying a HabitTracker application
+name: HabitSpace
+description: A Helm chart for deploying a HabitSpace application
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

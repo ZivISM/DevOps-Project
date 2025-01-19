@@ -15,7 +15,7 @@ module "eks_blueprints_addons" {
       values = [
         <<EOF
         vpcId: ${module.vpc.vpc_id}
-        region: ${var.region}
+        region: ${var.aws_region}
         tolerations:
           - key: system-critical
             operator: "Equal"
@@ -66,8 +66,8 @@ module "eks_blueprints_addons" {
  }
  
  depends_on = [
-    module.eks,
-    module.ebs_csi_driver_irsa
+    module.ebs_csi_driver_irsa,
+    helm_release.karpenter-manifests
   ]
 }
 
@@ -79,7 +79,7 @@ module "ebs_csi_driver_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.20"
 
-  role_name_prefix = "${local.name}-ebs-csi-driver-"
+  role_name_prefix = "${var.project}-ebs-csi-driver-"
 
   attach_ebs_csi_policy = true
 
@@ -95,6 +95,7 @@ module "ebs_csi_driver_irsa" {
   }
 
   depends_on = [
-    module.eks
+    module.eks,
+    module.karpenter,
   ]
 }

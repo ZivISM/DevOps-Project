@@ -8,7 +8,7 @@ provider "aws" {
 
 # Your existing AWS provider (if different region)
 provider "aws" {
-  region = var.region  # or your specific region
+  region = var.aws_region
 }
 
 ###############################################################################
@@ -17,16 +17,25 @@ provider "aws" {
 terraform {
   required_providers {
     kubectl = {
-      source = "gavinbunney/kubectl"
-      version = "1.19.0"
+      source  = "gavinbunney/kubectl"
+      version = "1.18.0"
     }
     helm = {
-      source = "hashicorp/helm"
+      source  = "hashicorp/helm"
       version = "2.17.0"
     }
     tls = {
       source  = "hashicorp/tls"
-      version = "~> 4.0"
+      version = "4.0.5"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+      configuration_aliases = [aws.forKarpenter]
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.27"
     }
   }
 
@@ -58,8 +67,7 @@ provider "kubectl" {
   exec {
     api_version = "client.authentication.k8s.io/v1"
     command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
   }
 }
 

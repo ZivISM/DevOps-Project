@@ -1,20 +1,4 @@
 ###############################################################################
-# Cluster Information
-###############################################################################
-
-output "cluster_endpoint" {
-  value = module.eks.cluster_endpoint
-}
-
-###############################################################################
-# ArgoCD URL
-###############################################################################
-output "argocd_url" {
-  value = "https://argocd.${var.domain_name}"
-  description = "URL to access ArgoCD UI"
-}
-
-###############################################################################
 # Route53 Nameservers
 ###############################################################################
 output "route53_nameservers" {
@@ -45,10 +29,26 @@ output "godaddy_instructions" {
   EOT
 }
 
+
+###############################################################################
+# Cluster Information
+###############################################################################
+output "cluster_endpoint" {
+  value = module.eks.cluster_endpoint
+}
+
 ###############################################################################
 # Kubectl Configuration
 ###############################################################################
 output "configure_kubectl" {
   description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
-  value       = "aws eks --region ${local.region} update-kubeconfig --name ${module.eks.cluster_name}"
+  value       = "aws eks --region ${var.aws_region} update-kubeconfig --name ${module.eks.cluster_name}"
+}
+
+###############################################################################
+# ArgoCD URL
+###############################################################################
+output "argocd_url" {
+  value = "https://argocd.${var.domain_name}"
+  description = "URL to access ArgoCD UI"
 }
