@@ -1,6 +1,6 @@
 backend:
   image:
-    tag: 777
+    tag: 888
 frontend:
   image:
     tag: d7d17e336a120aa014fb0f2e0c707ded8d6383ef
