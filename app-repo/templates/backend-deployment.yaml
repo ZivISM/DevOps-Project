@@ -26,7 +26,7 @@ spec:
     spec:
       tolerations:
         - key: "system-critical"
-          value: "true"
+          value: "Equal"
           effect: "NoSchedule"
       initContainers:
         - name: wait-for-db
