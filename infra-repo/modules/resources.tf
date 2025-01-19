@@ -21,25 +21,7 @@ resource "aws_route53_record" "wildcard" {
   depends_on = [ kubernetes_ingress_v1.alb_nginx ]
 }
 
-resource "aws_route53_record" "argocd" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "argocd.${var.domain_name}"
-  type    = "CNAME"
-  ttl     = 300
-  records = [kubernetes_ingress_v1.alb_nginx.status.0.load_balancer.0.ingress.0.hostname]
 
-  depends_on = [ kubernetes_ingress_v1.alb_nginx ]
-}
-
-resource "aws_route53_record" "prometheus" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "prometheus.${var.domain_name}"
-  type    = "CNAME"
-  ttl     = 300
-  records = [kubernetes_ingress_v1.alb_nginx.status.0.load_balancer.0.ingress.0.hostname]
-
-  depends_on = [ kubernetes_ingress_v1.alb_nginx ]
-}
 
 ###############################################################################
 # ACM
@@ -55,8 +37,6 @@ module "acm" {
 
   subject_alternative_names = [
     "*.${var.domain_name}",
-    "argocd.${var.domain_name}",
-    "prometheus.${var.domain_name}",
   ]
 
   wait_for_validation = false
@@ -72,12 +52,6 @@ module "acm" {
 
 
 
-data "aws_acm_certificate" "cert" {
-  domain   = var.domain_name
-  statuses = ["ISSUED"]
-  
-  depends_on = [module.acm]
-}
 
 ###############################################################################
 # Kubernetes Ingress
@@ -89,10 +63,10 @@ resource "kubernetes_ingress_v1" "alb_nginx" {
     name      = "alb-nginx"
     namespace = "ingress-nginx"
     annotations = {
-      "alb.ingress.kubernetes.io/scheme"             = "internet-facing"
+      "alb.ingress.kubernetes.io/scheme"            = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"        = "ip"
       "alb.ingress.kubernetes.io/healthcheck-path"   = "/healthz"
-      "alb.ingress.kubernetes.io/certificate-arn"    = "${data.aws_acm_certificate.cert.arn}"
+      "alb.ingress.kubernetes.io/certificate-arn"    = "${module.acm.acm_certificate_arn}"
       "alb.ingress.kubernetes.io/listen-ports"       = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
       "alb.ingress.kubernetes.io/ssl-redirect"       = "443"
       "alb.ingress.kubernetes.io/load-balancer-name" = "${var.environment}-alb"
@@ -107,7 +81,7 @@ resource "kubernetes_ingress_v1" "alb_nginx" {
           path_type = "Prefix"
           backend {
             service {
-              name = "nginx-ingress-controller"
+              name = "nginx-ingress-controller-ingress-nginx-controller"
               port {
                 number = 80
               }
@@ -141,10 +115,7 @@ resource "helm_release" "nginx" {
   # values           = [file("${path.module}/values/ingress-nginx.yaml")]
   values = [<<EOF
     service:
-      type: ${var.nginx_controller_service_type}
-    ingressClassResource:
-      name: nginx
-      enabled: true
+      type: ClusterIP
 
   EOF
   ]
