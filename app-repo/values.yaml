@@ -74,7 +74,7 @@ postgresql:
     database: habits
   primary:
     persistence:
-      storageClass: "standard"
+      storageClass:  gp2
       size: 10Gi
     initdb:
       scripts:
@@ -111,6 +111,10 @@ postgresql:
     requests:
       cpu: 500m
       memory: 512Mi
+  tolerations:
+    - key: "general-workload"
+      operator: "Equal"
+      effect: "NoSchedule"
 
 
 pdb:

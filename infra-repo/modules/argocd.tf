@@ -4,6 +4,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: argocd-redis-network-policy
+  namespace: argocd
 spec:
   egress:
     - ports:
@@ -24,7 +25,7 @@ resource "helm_release" "argocd" {
   namespace  = "argocd"
   chart      = "argo-cd"
   repository = "https://argoproj.github.io/argo-helm"
-  version    = "7.7.16" 
+  version    = "7.1.3" 
   create_namespace = true
 
   set {
@@ -34,7 +35,9 @@ resource "helm_release" "argocd" {
 
   values = [
     <<EOF
-
+config:
+  params:
+    server.insecure: true
 server:
   service:
     type: ClusterIP
@@ -43,8 +46,7 @@ server:
     ingressClassName: nginx
     hosts:
       - argocd.${var.domain_name}
-    annotations:
-      kubernetes.io/ingress.class: nginx
+    https: false
 
 
 global:
@@ -198,3 +200,32 @@ EOF
 
 # depends_on = [ helm_release.argocd ]
 # }
+
+resource "kubectl_manifest" "argocd_ingress" {
+  yaml_body = <<YAML
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: argocd.zivoosh.online
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 443
+
+YAML
+
+  depends_on = [
+    helm_release.argocd,
+    helm_release.nginx
+  ]
+}

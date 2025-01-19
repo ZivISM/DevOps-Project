@@ -6,8 +6,5 @@ node_modules/
 .DS_Store
 *.log
 .github/
-source/frontend/node_modules/
-source/backend/node_modules/
 dist/
 */dist/
-*.tgz

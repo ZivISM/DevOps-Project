@@ -60,8 +60,6 @@ secrets/
 
 # Archive files
 *.zip
-*.tar.gz
-*.tgz
 *.rar
 
 # Test coverage and reports
