@@ -51,6 +51,6 @@ jobs:
           # Commit and push changes
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add values.yaml
+          git add gitops-repo/environments/development/values.yaml
           git commit -m "Update backend image to ${GITHUB_SHA} for development environment"
           git push origin development
