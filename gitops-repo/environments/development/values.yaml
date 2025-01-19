@@ -3,4 +3,4 @@ backend:
     tag: 999
 frontend:
   image:
-    tag: 1fd5a87904e2153bf1e711583f866aea1b792669
+    tag: 2f5e3c430362152e3abdf1b49b4b0844f1036328
