@@ -24,6 +24,10 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      tolerations:
+        - key: "system-critical"
+          value: "true"
+          effect: "NoSchedule"
       initContainers:
         - name: wait-for-db
           image: postgres:15

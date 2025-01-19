@@ -18,6 +18,10 @@ spec:
         {{- include "app.selectorLabels" . | nindent 8 }}
         component: frontend
     spec:
+      tolerations:
+        - key: "system-critical"
+          value: "true"
+          effect: "NoSchedule"
       containers:
         - name: frontend
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
