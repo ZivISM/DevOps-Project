@@ -111,6 +111,10 @@ postgresql:
     requests:
       cpu: 500m
       memory: 512Mi
+  tolerations:
+    - key: "general-workload"
+      operator: "Equal"
+      effect: "NoSchedule"
 
 
 pdb:
