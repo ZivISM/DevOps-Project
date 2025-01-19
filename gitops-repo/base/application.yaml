@@ -26,7 +26,7 @@ spec:
   project: habitspace-dev
   source:
     repoURL: https://github.com/ZivISM/DevOps-Project.git
-    targetRevision: development
+    targetRevision: main
     path: app-repo
     helm:
       valueFiles:
