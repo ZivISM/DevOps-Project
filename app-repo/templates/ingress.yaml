@@ -12,14 +12,14 @@ spec:
   - host: {{ index .Values.frontend.ingress.hosts 0 "host" | quote }}
     http:
       paths:
-      - path: /api/(.*)
+      - path: /api
         pathType: Prefix
         backend:
           service:
             name: habitspace-dev-backend-service
             port:
               number: {{ .Values.backend.service.port }}
-      - path: /(.*)
+      - path: /
         pathType: ImplementationSpecific
         backend:
           service:
