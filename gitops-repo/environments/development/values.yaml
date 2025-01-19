@@ -3,4 +3,4 @@ backend:
     tag: v0.1.7
 frontend:
   image:
-    tag: e69730fd77e2e89c8a678c65528600e1e44044b3
+    tag: e53b12ca0f5af4a7ff0106942b983ecdc360beef
