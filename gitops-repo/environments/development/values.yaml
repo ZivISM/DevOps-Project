@@ -1,6 +1,6 @@
 backend:
   image:
-    tag: 999
+    tag: dad408baf255603514206e2574f1e293067cf55d
 frontend:
   image:
     tag: 2f5e3c430362152e3abdf1b49b4b0844f1036328
