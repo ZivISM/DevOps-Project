@@ -25,7 +25,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       tolerations:
-        - key: "system-critical"
+        - key: "general-workload"
           value: "Equal"
           effect: "NoSchedule"
       initContainers:
