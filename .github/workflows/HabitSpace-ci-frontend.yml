@@ -5,7 +5,10 @@ on:
     paths:
       - 'app-repo/source/frontend/**'
 
-
+  workflow_run:
+    workflows: ["Build frontend image"]
+    types:
+      - completed
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/habit-tracker-frontend
 

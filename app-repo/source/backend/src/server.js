@@ -12,9 +12,9 @@ const SERVER_PORT = config.server.port;
 console.log('Final SERVER_PORT:', SERVER_PORT);
 const app = express();
 
-// Simpler CORS configuration
+
 app.use(cors({
-  origin: '*',  // Allow all origins for development
+  origin: '*',  
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
