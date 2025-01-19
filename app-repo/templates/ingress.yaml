@@ -6,31 +6,24 @@ metadata:
   namespace: habitspace
   labels:
     {{- include "app.labels" . | nindent 4 }}
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
 spec:
-  ingressClassName: {{ .Values.frontend.ingress.className }}
+  ingressClassName: nginx
   rules:
   - host: {{ index .Values.frontend.ingress.hosts 0 "host" | quote }}
     http:
       paths:
-      - path: /api(/|$)(.*)
-        pathType: ImplementationSpecific
+      - path: /api/(.*)
+        pathType: Prefix
         backend:
           service:
-            name: {{ .Release.Name }}-backend-service
+            name: habitspace-dev-backend-service
             port:
               number: {{ .Values.backend.service.port }}
       - path: /(.*)
         pathType: ImplementationSpecific
         backend:
           service:
-            name: {{ .Release.Name }}-frontend
+            name: habitspace-dev-frontend
             port:
               number: {{ .Values.frontend.service.port }}
 {{- end }}
