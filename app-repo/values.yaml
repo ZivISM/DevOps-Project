@@ -27,17 +27,28 @@ frontend:
     enabled: true
     className: nginx
     annotations:
-    kubernetes.io/ingress.class: "nginx"
-    # Instruct NGINX to "fallback" to index.html for unknown paths
-    # so your SPA can handle them client-side
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      try_files $uri $uri/ /index.html;
+      kubernetes.io/ingress.class: "nginx"
+      # Handle both frontend and API routes
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      nginx.ingress.kubernetes.io/use-regex: "true"
     hosts:
       - host: habits.zivoosh.online
         paths:
-          - path: /
+          - path: /api/(.*)
             pathType: Prefix
-            
+            backend:
+              service:
+                name: habit-tracker-backend
+                port:
+                  number: 5000
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: habit-tracker-frontend
+                port:
+                  number: 80
+
 # Backend API configuration
 backend:
   enabled: true
@@ -132,7 +143,7 @@ configMap:
     DB_USER: "postgres"
     DB_PASSWORD: "postgres"
     SERVER_PORT: "5000"
-    API_URL: "http://habit-tracker-backend:5000"
+    API_URL: "/api"
 
 # Secret data
 secrets:

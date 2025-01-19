@@ -24,7 +24,7 @@ app.use(json());
 const pool = new Pool(config.db);
 
 // Add health check endpoint for Kubernetes
-app.get('/habits', async (req, res) => {
+app.get('/api/habits', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM habits ORDER BY id ASC');
     res.json(result.rows);
@@ -34,7 +34,7 @@ app.get('/habits', async (req, res) => {
   }
 });
 
-app.post('/habits', async (req, res) => {
+app.post('/api/habits', async (req, res) => {
   const { name } = req.body;
   
   // Basic validation
@@ -56,12 +56,12 @@ app.post('/habits', async (req, res) => {
 });
 
 // Add health check endpoint for Kubernetes
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
 });
 
 // Add readiness check endpoint for Kubernetes
-app.get('/ready', async (req, res) => {
+app.get('/api/ready', async (req, res) => {
   try {
     // Test database connection
     await pool.query('SELECT 1');
@@ -72,7 +72,10 @@ app.get('/ready', async (req, res) => {
   }
 });
 
-app.listen(SERVER_PORT, () => {
-  console.log(`Server is running on port ${SERVER_PORT}`);
+// Remove the base URL since it will be handled by the ingress
+app.use('/habits', habitsRouter);  // This will be accessible at /api/habits
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
-// Rest of the endpoints remain the same...
