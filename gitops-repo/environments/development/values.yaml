@@ -3,4 +3,4 @@ backend:
     tag: b4217f0daaaa0bf2958e1bdacc08a9c28714ebbf
 frontend:
   image:
-    tag: b4217f0daaaa0bf2958e1bdacc08a9c28714ebbf
+    tag: 057ffccf790f5473d7881d4811baa690d29be320
