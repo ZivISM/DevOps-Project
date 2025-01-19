@@ -1,3 +1,21 @@
+resource "kubectl_manifest" "argocd_network_policy" {
+  yaml_body = <<YAML
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-redis-network-policy
+spec:
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+        - port: 16443
+          protocol: TCP
+  YAML
+}
+
 ###############################################################################
 # ArgoCD Helm
 ###############################################################################
@@ -6,7 +24,7 @@ resource "helm_release" "argocd" {
   namespace  = "argocd"
   chart      = "argo-cd"
   repository = "https://argoproj.github.io/argo-helm"
-  version    = "7.7.11" 
+  version    = "7.7.16" 
   create_namespace = true
 
   set {
@@ -32,19 +50,18 @@ server:
 global:
   nodeSelector:
     karpenter.sh/nodepool: system-critical
+  domain: argocd.${var.domain_name}
 
   tolerations:
-    - key: "CriticalWorkload"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+    - key: "system-critical"
+      operator: "Exists"
 
 
 controller:
   nodeSelector:
     karpenter.sh/nodepool: system-critical
   tolerations:
-    - key: "CriticalWorkload"
+    - key: "system-critical"
       operator: "Equal"
       value: "true"
       effect: "NoSchedule"
@@ -53,7 +70,7 @@ repoServer:
   nodeSelector:
     karpenter.sh/nodepool: system-critical
   tolerations:
-    - key: "CriticalWorkload"
+    - key: "system-critical"
       operator: "Equal"
       value: "true"
       effect: "NoSchedule"
@@ -62,17 +79,18 @@ applicationSet:
   nodeSelector:
     karpenter.sh/nodepool: system-critical
   tolerations:
-    - key: "CriticalWorkload"
+    - key: "system-critical"
       operator: "Equal"
       value: "true"
       effect: "NoSchedule"
 
 redis:
+
   nodeSelector:
     karpenter.sh/nodepool: system-critical
   tolerations:
-    - key: "CriticalWorkload"
-      operator: "Equal"
+    - key: "system-critical"
+      operator: "Exists"
       value: "true"
       effect: "NoSchedule"
 
@@ -142,6 +160,7 @@ EOF
     module.karpenter,
     helm_release.karpenter-manifests,
     helm_release.nginx,
+    resource.kubectl_manifest.argocd_network_policy
   ]
 }
 
