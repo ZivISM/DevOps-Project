@@ -70,18 +70,6 @@ spec:
                   key: postgres-password
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.configMap.data.SERVER_PORT | default "5000" }}
-            initialDelaySeconds: 60
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: {{ .Values.configMap.data.SERVER_PORT | default "5000" }}
-            initialDelaySeconds: 30
-            periodSeconds: 5
           lifecycle:
             preStop:
               exec:
