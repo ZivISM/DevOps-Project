@@ -6,7 +6,7 @@ on:
       - 'app-repo/source/frontend/**'
 
   workflow_run:
-    workflows: ["Build frontend image"]
+    workflows: ["Build Backend image"]
     types:
       - completed
 env:
