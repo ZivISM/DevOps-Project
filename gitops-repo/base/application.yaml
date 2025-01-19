@@ -24,13 +24,16 @@ metadata:
   namespace: argocd
 spec:
   project: habitspace-dev
-  source:
-    repoURL: https://github.com/ZivISM/DevOps-Project.git
-    targetRevision: development
-    path: app-repo
-    helm:
-      valueFiles:
-        - ../gitops-repo/environments/development/values.yaml
+  sources:
+    - repoURL: https://github.com/ZivISM/DevOps-Project.git
+      targetRevision: development
+      path: app-repo
+      helm:
+        valueFiles:
+          - $values/gitops-repo/environments/development/values.yaml
+    - repoURL: https://github.com/ZivISM/DevOps-Project.git
+      targetRevision: development
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: habitspace-dev
