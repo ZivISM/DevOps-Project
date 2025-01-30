@@ -31,14 +31,7 @@ module "eks" {
       type        = "ingress"
       self        = true
     }
-    drachtio_all = {
-      description                   = "Node to node all ports/protocols"
-      protocol                      = "-1"
-      from_port                     = 53
-      to_port                       = 53
-      type                          = "ingress"
-      source_cluster_security_group = true
-    }
+
 
     pod-access = {
       description = "Node to node all ports/protocols"
@@ -56,14 +49,6 @@ module "eks" {
       type             = "egress"
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
-    }
-    cluster_nodes_incoming = {
-      description                   = "allow from cluster To node 1025-65535"
-      protocol                      = "tcp"
-      from_port                     = 1025
-      to_port                       = 65535
-      type                          = "ingress"
-      source_cluster_security_group = true
     }
   }
   cluster_security_group_additional_rules = {
@@ -139,21 +124,6 @@ module "eks_admins_iam_role" {
   ]
 
 }
-
-###############################################################################
-# EKS User IAM User
-###############################################################################
-# module "eks_iam_user" {
-#     source = "terraform-aws-modules/iam/aws//modules/iam-user"
-#     version = "5.48.0"
-
-#     name                          = "eks-user"
-#     create_iam_access_key         = false
-#     create_iam_user_login_profile = false    
-
-#     force_destroy = true
-# }
-
 
 ###############################################################################
 # EKS Admins IAM Group

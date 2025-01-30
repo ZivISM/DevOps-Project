@@ -10,7 +10,7 @@ module "eks_blueprints_addons" {
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  enable_aws_load_balancer_controller = true
+  enable_aws_load_balancer_controller = var.enable_aws_load_balancer_controller
   aws_load_balancer_controller = {
       values = [
         <<EOF
@@ -20,25 +20,86 @@ module "eks_blueprints_addons" {
           - key: system-critical
             operator: "Equal"
             effect: NoSchedule
+        nodeSelector:
+          karpenter.sh/nodepool: system-critical
         EOF
       ]
     }
+  
+  enable_metrics_server = var.enable_metrics_server
+  metrics_server = {
+    most_recent = true
+  }
+
+  enable_kube_prometheus_stack = var.enable_kube_prometheus_stack
+  kube_prometheus_stack = {
+    most_recent = true
+    values = [
+      <<EOF
+      ingress:
+        enabled: true
+        hosts:
+          - monitoring.${var.domain_name}
+      tolerations:
+        - key: system-critical
+          operator: "Equal"
+          effect: NoSchedule
+      nodeSelector:
+        karpenter.sh/nodepool: system-critical
+      EOF
+    ]
+  }
+
+  enable_aws_efs_csi_driver = var.enable_aws_efs_csi_driver
+  aws_efs_csi_driver = {
+    most_recent = true
+  }
 
   eks_addons = {
 
     eks-pod-identity-agent = {
         most_recent = true
+        values = [
+      <<EOF
+      tolerations:
+        - key: system-critical
+          operator: "Equal"
+          effect: NoSchedule
+      nodeSelector:
+        karpenter.sh/nodepool: system-critical
+      EOF
+    ]
     }
 
 # AWS EBS CSI Driver
     aws-ebs-csi-driver = {
       most_recent = true
       service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+      values = [
+      <<EOF
+      tolerations:
+        - key: system-critical
+          operator: "Equal"
+          effect: NoSchedule
+      nodeSelector:
+        karpenter.sh/nodepool: system-critical
+      EOF
+    ]
     }
     
 # CoreDNS
     coredns = {
       most_recent = true
+      values = [
+      <<EOF
+      tolerations:
+        - key: system-critical
+          operator: "Equal"
+          effect: NoSchedule
+      nodeSelector:
+        karpenter.sh/nodepool: system-critical
+      EOF
+    ]
       timeouts = {
         create = "25m"
         delete = "10m"
@@ -48,20 +109,32 @@ module "eks_blueprints_addons" {
 # VPC CNI
     vpc-cni = {
       most_recent = true 
-    #   values = [
-    #     EOF
-    #     eniConfig:
-    #       region: ${var.region}
-    #       vpcId: ${module.vpc.vpc_id}
-    #     EOF
-    #   ]
+      values = [
+      <<EOF
+      tolerations:
+        - key: system-critical
+          operator: "Equal"
+          effect: NoSchedule
+      nodeSelector:
+        karpenter.sh/nodepool: system-critical
+      EOF
+    ]
     }
     
-
 
 # Kube Proxy
     kube-proxy = {
       most_recent = true
+      values = [
+      <<EOF
+      tolerations:
+        - key: system-critical
+          operator: "Equal"
+          effect: NoSchedule
+      nodeSelector:
+        karpenter.sh/nodepool: system-critical
+      EOF
+    ]
     }
  }
  
@@ -95,7 +168,6 @@ module "ebs_csi_driver_irsa" {
   }
 
   depends_on = [
-    module.eks,
-    module.karpenter,
+    helm_release.karpenter-manifests
   ]
 }

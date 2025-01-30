@@ -1,22 +1,3 @@
-resource "kubectl_manifest" "argocd_network_policy" {
-  yaml_body = <<YAML
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: argocd-redis-network-policy
-  namespace: argocd
-spec:
-  egress:
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
-        - port: 16443
-          protocol: TCP
-  YAML
-}
-
 ###############################################################################
 # ArgoCD Helm
 ###############################################################################
@@ -158,48 +139,9 @@ EOF
   ]
 
   depends_on = [
-    module.eks,
-    module.karpenter,
-    helm_release.karpenter-manifests,
     helm_release.nginx,
-    resource.kubectl_manifest.argocd_network_policy
   ]
 }
-
-###############################################################################
-# ArgoCD Application
-###############################################################################
-
-# resource "kubectl_manifest" "habits" {
-#   yaml_body = <<YAML
-# # gitops-repo/base/applications/dev.yaml
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: ${var.project}-${var.environment}
-#   namespace: argocd
-# spec:
-#   project: ${var.project}
-#   source:
-#     repoURL: ${var.github_repo}
-#     targetRevision: ${var.environment}
-#     path: app-repo/
-#     helm:
-#       valueFiles:
-#         - ../environments/${var.environment}/values.yaml
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: habitspace-${var.environment}
-#   syncPolicy:
-#     automated:
-#       prune: true
-#       selfHeal: true
-#     syncOptions:
-#       - CreateNamespace=true
-# YAML
-
-# depends_on = [ helm_release.argocd ]
-# }
 
 resource "kubectl_manifest" "argocd_ingress" {
   yaml_body = <<YAML
@@ -211,7 +153,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: argocd.zivoosh.online
+  - host: argocd.${var.domain_name}
     http:
       paths:
       - path: /
@@ -226,6 +168,5 @@ YAML
 
   depends_on = [
     helm_release.argocd,
-    helm_release.nginx
   ]
 }

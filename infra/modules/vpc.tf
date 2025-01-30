@@ -92,5 +92,8 @@ module "vpc_endpoints" {
     }
   }
 
-  depends_on = [module.eks]
+  depends_on = [
+    module.eks,
+    helm_release.karpenter,
+  ]
 }

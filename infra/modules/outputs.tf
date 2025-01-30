@@ -52,3 +52,13 @@ output "argocd_url" {
   value = "https://argocd.${var.domain_name}"
   description = "URL to access ArgoCD UI"
 }
+
+###############################################################################
+# HPA
+###############################################################################
+output "hpa_status" {
+  value = kubernetes_horizontal_pod_autoscaler_v1.system_critical_hpa
+  description = "Status of the system-critical HPA"
+}
+
+

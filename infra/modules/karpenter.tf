@@ -49,7 +49,6 @@ module "karpenter" {
 
   tags = var.tags
   depends_on = [ 
-    module.eks,
     aws_iam_policy.karpenter_controller_policy
   ]
 }
@@ -68,7 +67,7 @@ resource "helm_release" "karpenter" {
   repository_password = data.aws_ecrpublic_authorization_token.token.password
   chart               = "karpenter"
   version             = "1.0.0"
-  depends_on          = [module.karpenter, module.eks, aws_iam_policy.karpenter_controller_policy]
+  depends_on          = [module.karpenter]
   wait                = true
   create_namespace    = true
   values = [
@@ -109,35 +108,6 @@ data "aws_ecrpublic_authorization_token" "token" {
 }
 
 ###############################################################################
-# Karpenter aws-logging-configMap
-###############################################################################
-# resource "kubernetes_config_map" "aws_logging" {
-#   metadata {
-#     name      = "aws-logging"
-#     namespace = "karpenter"
-#   }
-
-#   data = {
-#     "flb_log_cw"    = "false"  # Disable CloudWatch logging
-#     "filters.conf"   = <<-EOF
-#       [FILTER]
-#           Name kubernetes
-#           Match kube.*
-#           Merge_Log On
-#           Keep_Log Off
-#           Buffer_Size 0
-#           Kube_Meta_Cache_TTL 300s
-#     EOF
-#     "output.conf"    = ""
-#     "parsers.conf"   = ""
-#   }
-
-#   depends_on = [
-#     module.eks  
-#   ]
-# }
-
-###############################################################################
 # Karpenter Manifests
 ###############################################################################
 resource "helm_release" "karpenter-manifests" {
@@ -145,7 +115,7 @@ resource "helm_release" "karpenter-manifests" {
   name            = each.key
   chart           = "${path.module}/karpenter-manifests"
   wait            = true
-  depends_on      = [module.karpenter, helm_release.karpenter, aws_iam_policy.karpenter_controller_policy]
+  depends_on      = [ helm_release.karpenter ]
   force_update    = true
   cleanup_on_fail = true
   set {
@@ -190,6 +160,8 @@ resource "helm_release" "karpenter-manifests" {
     %{endif}
     cpu: "${each.value.limits.cpu}"
     memory: "${each.value.limits.memory}"
+    labels:
+      karpenter.sh/nodepool: "${each.key}"
     EOT
   ]
 }

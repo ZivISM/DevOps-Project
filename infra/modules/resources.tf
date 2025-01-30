@@ -10,18 +10,24 @@ resource "aws_route53_zone" "main" {
 ###############################################################################
 # Route53 Records
 ###############################################################################
-# Wildcard record for all subdomains
 resource "aws_route53_record" "wildcard" {
   zone_id = aws_route53_zone.main.zone_id
-  name    = "*.${var.domain_name}"  # This will match any subdomain
-  type    = "CNAME"
-  ttl     = 300
-  records = [kubernetes_ingress_v1.alb_nginx.status.0.load_balancer.0.ingress.0.hostname]
+  name    = "*.${var.domain_name}"
+  type    = "A"  # Changed to A record for alias
 
-  depends_on = [ kubernetes_ingress_v1.alb_nginx ]
+  alias {
+    name                   = data.aws_alb.alb.dns_name
+    zone_id               = data.aws_alb.alb.zone_id
+    evaluate_target_health = true
+  }
+
+  depends_on = [kubernetes_ingress_v1.alb_nginx]
 }
 
-
+data "aws_alb" "alb" {
+name = "${var.environment}-alb"
+depends_on = [time_sleep.alb_delete_delay]
+}
 
 ###############################################################################
 # ACM
@@ -50,15 +56,12 @@ module "acm" {
   depends_on = [aws_route53_zone.main, helm_release.nginx]
 }
 
-
-
-
 ###############################################################################
 # Kubernetes Ingress
 ###############################################################################
-
 resource "kubernetes_ingress_v1" "alb_nginx" {
-  wait_for_load_balancer = true
+  wait_for_load_balancer = false
+  
   metadata {
     name      = "alb-nginx"
     namespace = "ingress-nginx"
@@ -81,7 +84,7 @@ resource "kubernetes_ingress_v1" "alb_nginx" {
           path_type = "Prefix"
           backend {
             service {
-              name = "nginx-ingress-controller-ingress-nginx-controller"
+              name = helm_release.nginx.name
               port {
                 number = 80
               }
@@ -92,27 +95,27 @@ resource "kubernetes_ingress_v1" "alb_nginx" {
     }
   }
   depends_on = [
-    #helm_release.aws_lbc,
-    helm_release.nginx,
-    module.eks,
-    module.vpc,
-    #aws_eks_pod_identity_association.aws_lbc,
-    module.acm,
-    helm_release.karpenter-manifests
+    time_sleep.alb_delete_delay
   ]
 }
 
+resource "time_sleep" "alb_delete_delay" {
+  depends_on = [
+    helm_release.nginx,
+  ]
+
+  destroy_duration = "25s"   
+}
 
 ###############################################################################
 # Nginx Ingress Controller Helm
 ###############################################################################
 resource "helm_release" "nginx" {
-  name             = "nginx-ingress-controller"
+  name             = "${var.project}"
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
   namespace        = "ingress-nginx"
   create_namespace = true
-  # values           = [file("${path.module}/values/ingress-nginx.yaml")]
   values = [<<EOF
   controller: 
     service:
@@ -120,14 +123,65 @@ resource "helm_release" "nginx" {
     ingressClass:
       name: nginx
       enabled: true
+    nodeSelector:
+      karpenter.sh/nodepool: system-critical
+    tolerations:
+      - key: system-critical
+        operator: "Equal"
+        effect: NoSchedule
   EOF
   ]
   
   depends_on = [
-    #helm_release.aws_lbc,
-    module.eks, 
-    module.karpenter,
-    helm_release.karpenter,
-    helm_release.karpenter-manifests,
+    module.eks_blueprints_addons,
+  ]
+}
+
+###############################################################################
+# System-Critical HPA
+###############################################################################
+resource "kubernetes_horizontal_pod_autoscaler_v1" "system_critical_hpa" {
+  for_each = {
+    "coredns" = {
+      namespace = "kube-system"
+      min_replicas = 1
+      max_replicas = 2
+      target_cpu_utilization = 80
+    }
+    "${helm_release.nginx.name}" = {
+      namespace = "ingress-nginx" 
+      min_replicas = 1
+      max_replicas = 2
+      target_cpu_utilization = 75
+    }
+    "kube-prometheus-stack" = {
+      namespace = "kube-prometheus-stack"
+      min_replicas = 1
+      max_replicas = 2
+      target_cpu_utilization = 75
+    }
+  }
+
+  metadata {
+    name = each.key
+    namespace = each.value.namespace
+  }
+
+  spec {
+    scale_target_ref {
+      api_version = "apps/v1"
+      kind = "Deployment"
+      name = each.key
+    }
+
+    min_replicas = each.value.min_replicas
+    max_replicas = each.value.max_replicas
+
+    target_cpu_utilization_percentage = each.value.target_cpu_utilization
+  }
+
+  depends_on = [
+    module.eks_blueprints_addons,
+    helm_release.nginx
   ]
 }
