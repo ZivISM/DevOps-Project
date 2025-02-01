@@ -1,18 +1,47 @@
+###############################################################################
 # Global settings
+###############################################################################
 global:
   environment: development
-  namespace: default
+  namespace: habitspace
+  imagePullSecrets: []
 
 
-
-# Frontend configuration
+###############################################################################
+# Frontend
+###############################################################################
 frontend:
   enabled: true
   name: frontend
+  
   replicaCount: 1
+  
   image:
     repository: zivism/habit-tracker-frontend
     pullPolicy: IfNotPresent
+
+  podAnnotations: {}
+
+  podLabels: {}
+
+  podSecurityContext: {}
+
+  securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  volumeMounts: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
   service:
     type: ClusterIP
     port: 80
@@ -23,39 +52,30 @@ frontend:
     requests:
       cpu: 250m
       memory: 256Mi
-  ingress:
+
+  autoscaling:
     enabled: true
-    className: nginx
-    annotations:
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 80
 
-    hosts:
-      - host: habits.zivoosh.online
-        paths:
-          - path: /api/(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: habitspace-dev-backend-service
-                port:
-                  number: 5000
-          - path: /(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: habitspace-dev-frontend
-                port:
-                  number: 80
-
-# Backend API configuration
+###############################################################################
+# Backend
+###############################################################################
 backend:
   enabled: true
+
   replicaCount: 1
+  
   image:
-    repository: zivism/habit-tracker-backend
+    repository: 
     pullPolicy: IfNotPresent
+    tag: 
+  
   service:
     type: ClusterIP
     port: 5000
+  
   resources:
     limits:
       cpu: 1000m
@@ -64,6 +84,28 @@ backend:
       cpu: 500m
       memory: 512Mi
 
+  podAnnotations: {}
+
+  podLabels: {}
+
+  podSecurityContext: {}
+
+  securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  volumeMounts: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -71,7 +113,9 @@ backend:
     targetCPUUtilization: 80
     targetMemoryUtilization: 80
 
-# Database configuration
+###############################################################################
+# Database
+###############################################################################
 postgresql:
   enabled: true
   namespaceOverride: "habitspace"
@@ -83,6 +127,8 @@ postgresql:
     persistence:
       storageClass:  gp2
       size: 10Gi
+  labels:
+    component: postgres
     initdb:
       scripts:
         init.sql: |
@@ -123,18 +169,43 @@ postgresql:
       operator: "Equal"
       effect: "NoSchedule"
 
+###############################################################################
+# Ingress
+###############################################################################
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
 
+  hosts:
+    - host: 
+      paths:
+        - path: 
+          pathType: 
+  tls: []
+
+###############################################################################
+# PDB
+###############################################################################
 pdb:
-  enabled: false
-  minAvailable: 1
-# ConfigMap data
+  frontend:
+    enabled: true
+    minAvailable: 1
+
+  backend:
+    enabled: true
+    minAvailable: 1
+
+###############################################################################
+# ConfigMap
+###############################################################################
 configMap:
   data:
     LOG_LEVEL: "info"
     CACHE_TTL: "3600"
     API_VERSION: "v1"
     CORS_ALLOWED_ORIGINS: "http://localhost:8080,https://habits.zivoosh.online"
-    DB_HOST: "habit-tracker-postgresql"
+    DB_HOST: "habitspace-postgresql"
     DB_PORT: "5432"
     DB_NAME: "habits"
     DB_USER: "postgres"
@@ -142,30 +213,34 @@ configMap:
     SERVER_PORT: "5000"
     API_URL: "/api"
 
-# Secret data
+###############################################################################
+# Secret
+###############################################################################
 secrets:
   data:
     JWT_SECRET: "your-jwt-secret"
     API_KEY: "your-api-key"
 
+###############################################################################
+# Monitoring
+###############################################################################
 monitoring:
-  enabled: false
+  enabled: true
   prometheus:
-    scrapeInterval: 15s
+    scrapeInterval: 5s
     path: /metrics 
 
-# Add init container configuration
+###############################################################################
+# Init Containers
+###############################################################################
 initContainers:
   enabled: true
   waitForDb:
     image: busybox:1.28
     command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql 5432; do echo waiting for database; sleep 2; done;']
 
-# Rest of your values.yaml content
+###############################################################################
+# Network Policy
+###############################################################################
 networkPolicy:
   enabled: true 
-
-namespace:
-  name: habitspace
-  labels:
-    environment: development 

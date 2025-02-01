@@ -1,9 +1,9 @@
 {{/*
 Common labels
 */}}
-{{- define "app.labels" -}}
+{{- define "habitspace.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/name: habitspace
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -11,7 +11,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "app.selectorLabels" -}}
-app.kubernetes.io/name: {{ .Chart.Name }}
+{{- define "habitspace.selectorLabels" -}}
+app.kubernetes.io/name: habitspace
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }} 

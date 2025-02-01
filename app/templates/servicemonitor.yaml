@@ -5,12 +5,15 @@ metadata:
   name: {{ .Release.Name }}-backend
   namespace: habitspace
   labels:
-    {{- include "app.labels" . | nindent 4 }}
+    {{- include "habitspace.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "app.selectorLabels" . | nindent 6 }}
+      {{- include "habitspace.selectorLabels" . | nindent 6 }}
       component: backend
+      component: frontend
+      component: redis
+      component: postgres
   endpoints:
     - port: http
       path: /metrics

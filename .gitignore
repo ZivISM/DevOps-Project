@@ -69,3 +69,5 @@ test-results/
 
 
 project_book/
+
+.helmignore

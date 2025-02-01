@@ -3,6 +3,6 @@ kind: Namespace
 metadata:
   name: habitspace
   labels:
-    {{- include "app.labels" . | nindent 4 }}
+    {{- include "habitspace.labels" . | nindent 4 }}
   annotations:
-    description: "Namespace for Habit Tracker application" 
+    description: "Namespace for HabitSpace application" 

@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}-config
   namespace: habitspace
   labels:
-    {{- include "app.labels" . | nindent 4 }}
+    {{- include "habitspace.labels" . | nindent 4 }}
 data:
   ENVIRONMENT: {{ .Values.global.environment }}
   API_URL: {{ printf "http://%s-backend:%v" .Release.Name (.Values.backend.service.port) }}

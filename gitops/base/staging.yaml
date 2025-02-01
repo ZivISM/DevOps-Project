@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: habitspace-staging
+  namespace: argocd
+spec:
+  description: HabitSpace Staging Project
+  sourceRepos:
+    - '*'  # Allows any repository
+  destinations:
+    - namespace: '*'  # Allows any namespace
+      server: '*'    # Allows any cluster
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+---
+
+# gitops-repo/base/applications/staging.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: habitspace-staging
+  namespace: argocd
+spec:
+  project: habitspace-staging
+  source:
+    repoURL: https://github.com/ZivISM/DevOps-Project.git
+    targetRevision: main
+    path: app-repo/
+    helm:
+      valueFiles:
+        - ../environments/staging/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: habitspace-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false  # Require manual approval for staging
+    syncOptions:
+      - CreateNamespace=true

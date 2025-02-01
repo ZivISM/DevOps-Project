@@ -1,33 +1,55 @@
+###############################################################################
+# Backend Deployment
+###############################################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-backend
   namespace: habitspace
   labels:
-    {{- include "app.labels" . | nindent 4 }}
+    {{- include "habitspace.labels" . | nindent 4 }}
     component: backend
   annotations:
-    # Add a timestamp annotation to force rollout
     rollme: {{ randAlphaNum 5 | quote }}
     checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
     matchLabels:
-      {{- include "app.selectorLabels" . | nindent 6 }}
+      {{- include "habitspace.selectorLabels" . | nindent 6 }}
       component: backend
   template:
     metadata:
       labels:
-        {{- include "app.selectorLabels" . | nindent 8 }}
+        {{- include "habitspace.selectorLabels" . | nindent 8 }}
         component: backend
+        {{- with .Values.backend.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.backend.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
+      {{- with .Values.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       tolerations:
-        - key: "general-workload"
-          value: "Equal"
-          effect: "NoSchedule"
+        {{- toYaml .Values.backend.tolerations | nindent 8 }}
+      {{- with .Values.backend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: wait-for-db
           image: postgres:15
@@ -68,9 +90,36 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-postgresql
                   key: postgres-password
+          {{- with .Values.backend.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           lifecycle:
             preStop:
               exec:
                 command: ["/bin/sh", "-c", "sleep 10"] 
+
+---
+
+###############################################################################
+# Backend Service
+###############################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.environment }}-backend-service
+  namespace: habitspace
+  labels:
+    {{- include "habitspace.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.backend.service.type }}
+  ports:
+    - port: {{ .Values.configMap.data.SERVER_PORT | default "5000" }}
+      targetPort: {{ .Values.configMap.data.SERVER_PORT | default "5000" }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "habitspace.selectorLabels" . | nindent 4 }}
+    component: backend 

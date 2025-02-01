@@ -5,11 +5,11 @@ metadata:
   name: {{ .Release.Name }}-backend-network-policy
   namespace: habitspace
   labels:
-    {{- include "app.labels" . | nindent 4 }}
+    {{- include "habitspace.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      {{- include "app.selectorLabels" . | nindent 6 }}
+      {{- include "habitspace.selectorLabels" . | nindent 6 }}
       component: backend
   policyTypes:
     - Ingress
@@ -18,7 +18,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              {{- include "app.selectorLabels" . | nindent 14 }}
+              {{- include "habitspace.selectorLabels" . | nindent 14 }}
               component: frontend
       ports:
         - protocol: TCP
@@ -27,7 +27,7 @@ spec:
     - to:
         - podSelector:
             matchLabels:
-              {{- include "app.selectorLabels" . | nindent 14 }}
+              {{- include "habitspace.selectorLabels" . | nindent 14 }}
               app: postgresql
       ports:
         - protocol: TCP
