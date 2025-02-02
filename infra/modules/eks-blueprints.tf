@@ -21,7 +21,7 @@ module "eks_blueprints_addons" {
             operator: "Equal"
             effect: NoSchedule
         nodeSelector:
-          karpenter.sh/nodepool: system-critical
+          nodepool: system-critical
         EOF
       ]
     }
@@ -45,7 +45,7 @@ module "eks_blueprints_addons" {
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        karpenter.sh/nodepool: system-critical
+        nodepool: system-critical
       EOF
     ]
   }
@@ -66,7 +66,7 @@ module "eks_blueprints_addons" {
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        karpenter.sh/nodepool: system-critical
+        nodepool: system-critical
       EOF
     ]
     }
@@ -82,7 +82,7 @@ module "eks_blueprints_addons" {
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        karpenter.sh/nodepool: system-critical
+        nodepool: system-critical
       EOF
     ]
     }
@@ -97,7 +97,7 @@ module "eks_blueprints_addons" {
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        karpenter.sh/nodepool: system-critical
+        nodepool: system-critical
       EOF
     ]
       timeouts = {
@@ -116,7 +116,7 @@ module "eks_blueprints_addons" {
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        karpenter.sh/nodepool: system-critical
+        nodepool: system-critical
       EOF
     ]
     }
@@ -132,7 +132,7 @@ module "eks_blueprints_addons" {
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        karpenter.sh/nodepool: system-critical
+        nodepool: system-critical
       EOF
     ]
     }

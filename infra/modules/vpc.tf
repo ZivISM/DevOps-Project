@@ -63,6 +63,7 @@ module "vpc_endpoints" {
 
   vpc_id             = module.vpc.vpc_id
   security_group_ids = [module.eks.cluster_security_group_id]
+  
 
   endpoints = {
     s3 = {

@@ -79,7 +79,7 @@ module "infrastructure" {
       arc        = false   # Disables AWS Resource Controller integration
       amiFamily  = "AL2023" # Uses Amazon Linux 2023 as the node AMI
       labels = {
-        "karpenter.sh/nodepool" = "system-critical"
+        "nodepool" = "system-critical"
       }
       instance_category = {
         operator = "In"
@@ -120,7 +120,7 @@ module "infrastructure" {
       arc        = false
       amiFamily  = "AL2023"
       labels = {
-        "karpenter.sh/nodepool" = "general-workload"
+        "nodepool" = "general-workload"
       }
       instance_category = {
         operator = "In"

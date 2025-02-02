@@ -160,8 +160,7 @@ resource "helm_release" "karpenter-manifests" {
     %{endif}
     cpu: "${each.value.limits.cpu}"
     memory: "${each.value.limits.memory}"
-    labels:
-      karpenter.sh/nodepool: "${each.key}"
+    labels: ${jsonencode(each.value.labels)}
     EOT
   ]
 }

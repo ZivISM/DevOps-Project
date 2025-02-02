@@ -29,6 +29,14 @@ name = "${var.environment}-alb"
 depends_on = [time_sleep.alb_delete_delay]
 }
 
+resource "time_sleep" "alb_loading_delay" {
+  depends_on = [
+    kubernetes_ingress_v1.alb_nginx,
+  ]
+
+  destroy_duration = "60s"   
+}
+
 ###############################################################################
 # ACM
 ###############################################################################
