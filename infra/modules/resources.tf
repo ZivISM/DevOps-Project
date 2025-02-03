@@ -132,7 +132,7 @@ resource "helm_release" "nginx" {
       name: nginx
       enabled: true
     nodeSelector:
-      karpenter.sh/nodepool: system-critical
+      nodepool: system-critical
     tolerations:
       - key: system-critical
         operator: "Equal"
