@@ -22,29 +22,8 @@ A complete infrastructure and deployment setup for a three-tier application.
 - kubectl
 - Git
 
-### Deployment Steps
 
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd <repository-name>
-   ```
 
-2. **Initialize Terraform**
-   ```bash
-   terraform init
-   ```
-
-3. **Deploy Infrastructure**
-   ```bash
-   terraform plan
-   terraform apply
-   ```
-
-4. **Access ArgoCD**
-   ```bash
-   kubectl port-forward svc/argocd-server -n argocd 8080:443
-   ```
 
 
 
