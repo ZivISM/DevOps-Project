@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: habitspace-prod
+  namespace: argocd
+spec:
+  description: HabitSpace Production Project
+  sourceRepos:
+    - '*'  # Allows any repository
+  destinations:
+    - namespace: '*'  # Allows any namespace
+      server: '*'    # Allows any cluster
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+---
+
+# gitops-repo/base/applications/prod.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: habitspace-prod
+  namespace: argocd
+spec:
+  project: habitspace-prod
+  source:
+    repoURL: https://github.com/ZivISM/DevOps-Project.git
+    targetRevision: main
+    path: app-repo/
+    helm:
+      valueFiles:
+        - ../environments/production/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: habitspace-prod
+  syncPolicy:
+    automated:
+      prune: false  # Disable automatic pruning for production
+      selfHeal: false  # Require manual approval for production
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true  # Only apply changes that are out of sync
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas  # Ignore replica count differences in prod

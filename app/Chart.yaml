@@ -1,0 +1,15 @@
+apiVersion: v2
+name: HabitSpace
+description: A Helm chart for deploying a HabitSpace application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgresql
+    version: "16.4.1"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: common
+    version: "2.27.0"  
+    repository: "https://charts.bitnami.com/bitnami"

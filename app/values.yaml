@@ -1,0 +1,246 @@
+###############################################################################
+# Global settings
+###############################################################################
+global:
+  environment: development
+  namespace: habitspace
+  imagePullSecrets: []
+
+
+###############################################################################
+# Frontend
+###############################################################################
+frontend:
+  enabled: true
+  name: frontend
+  
+  replicaCount: 1
+  
+  image:
+    repository: zivism/habit-tracker-frontend
+    pullPolicy: IfNotPresent
+
+  podAnnotations: {}
+
+  podLabels: {}
+
+  podSecurityContext: {}
+
+  securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  volumeMounts: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 80
+
+###############################################################################
+# Backend
+###############################################################################
+backend:
+  enabled: true
+
+  replicaCount: 1
+  
+  image:
+    repository: 
+    pullPolicy: IfNotPresent
+    tag: 
+  
+  service:
+    type: ClusterIP
+    port: 5000
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+  podAnnotations: {}
+
+  podLabels: {}
+
+  podSecurityContext: {}
+
+  securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  volumeMounts: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 80
+    targetMemoryUtilization: 80
+
+###############################################################################
+# Database
+###############################################################################
+postgresql:
+  enabled: true
+  namespaceOverride: "habitspace"
+  auth:
+    username: postgres
+    postgresPassword: "postgres"
+    database: habits
+  primary:
+    persistence:
+      storageClass:  gp2
+      size: 10Gi
+  labels:
+    component: postgres
+    initdb:
+      scripts:
+        init.sql: |
+          -- Enable UUID extension
+          CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+          
+          -- Create habits table
+          CREATE TABLE IF NOT EXISTS habits (
+              id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+              name VARCHAR(255) NOT NULL,
+              streak INTEGER DEFAULT 0,
+              completed BOOLEAN DEFAULT FALSE,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              last_completed_at TIMESTAMP WITH TIME ZONE
+          );
+          
+          -- Add some initial data if table is empty
+          DO $$ 
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM habits) THEN
+              INSERT INTO habits (name, streak, completed) VALUES
+                ('Morning Meditation', 0, false),
+                ('Read 30 Minutes', 0, false),
+                ('Exercise', 0, false);
+            END IF;
+          END $$;
+  persistence:
+    size: 10Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  tolerations:
+    - key: "general-workload"
+      operator: "Equal"
+      effect: "NoSchedule"
+
+###############################################################################
+# Ingress
+###############################################################################
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+
+  hosts:
+    - host: 
+      paths:
+        - path: 
+          pathType: 
+  tls: []
+
+###############################################################################
+# PDB
+###############################################################################
+pdb:
+  frontend:
+    enabled: true
+    minAvailable: 1
+
+  backend:
+    enabled: true
+    minAvailable: 1
+
+###############################################################################
+# ConfigMap
+###############################################################################
+configMap:
+  data:
+    LOG_LEVEL: "info"
+    CACHE_TTL: "3600"
+    API_VERSION: "v1"
+    CORS_ALLOWED_ORIGINS: "http://localhost:8080,https://habits.zivoosh.online"
+    DB_HOST: "habitspace-postgresql"
+    DB_PORT: "5432"
+    DB_NAME: "habits"
+    DB_USER: "postgres"
+    DB_PASSWORD: "postgres"
+    SERVER_PORT: "5000"
+    API_URL: "/api"
+
+###############################################################################
+# Secret
+###############################################################################
+secrets:
+  data:
+    JWT_SECRET: "your-jwt-secret"
+    API_KEY: "your-api-key"
+
+###############################################################################
+# Monitoring
+###############################################################################
+monitoring:
+  enabled: true
+  prometheus:
+    scrapeInterval: 5s
+    path: /metrics 
+
+###############################################################################
+# Init Containers
+###############################################################################
+initContainers:
+  enabled: true
+  waitForDb:
+    image: busybox:1.28
+    command: ['sh', '-c', 'until nc -z {{ .Release.Name }}-postgresql 5432; do echo waiting for database; sleep 2; done;']
+
+###############################################################################
+# Network Policy
+###############################################################################
+networkPolicy:
+  enabled: true 

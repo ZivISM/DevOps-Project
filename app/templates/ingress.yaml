@@ -1,0 +1,29 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.global.environment }}-ingress
+  namespace: habitspace
+  labels:
+    {{- include "habitspace.labels" . | nindent 4 }}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: {{ index .Values.ingress.hosts 0 "host" | quote }}
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.global.environment }}-backend-service
+            port:
+              number: {{ .Values.backend.service.port }}
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ .Values.global.environment }}-frontend-service
+            port:
+              number: {{ .Values.frontend.service.port }}
+{{- end }}

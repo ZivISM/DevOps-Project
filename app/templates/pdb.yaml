@@ -1,0 +1,33 @@
+{{- if .Values.pdb.backend.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-backend-pdb
+  namespace: habitspace
+  labels:
+    {{- include "habitspace.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.pdb.backend.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "habitspace.selectorLabels" . | nindent 6 }}
+      component: backend
+{{- end -}}
+
+---
+
+{{- if .Values.pdb.frontend.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-frontend-pdb
+  namespace: habitspace
+  labels:
+    {{- include "habitspace.labels" . | nindent 4 }}
+{{- end -}}
+spec:
+  minAvailable: {{ .Values.pdb.frontend.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "habitspace.selectorLabels" . | nindent 6 }}
+      component: frontend

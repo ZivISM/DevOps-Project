@@ -24,7 +24,6 @@ kubeconfig
 terraform.rc
 *.tfvars
 .terraform.lock.hcl
-karpenter-manifests/
 
 # Package and dependency directories
 node_modules/
@@ -48,7 +47,7 @@ temp/
 *.env
 .env*
 secrets/
-*secret*
+
 *password*
 *credential*
 
@@ -67,3 +66,8 @@ coverage/
 .coverage
 htmlcov/
 test-results/
+
+
+project_book/
+
+.helmignore

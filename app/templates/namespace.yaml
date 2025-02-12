@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: habitspace
+  labels:
+    {{- include "habitspace.labels" . | nindent 4 }}
+  annotations:
+    description: "Namespace for HabitSpace application" 
