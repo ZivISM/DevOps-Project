@@ -17,7 +17,10 @@ resource "helm_release" "argocd" {
   values = [
     <<EOF
 config:
+  cm:
+    create: true
   params:
+    create: true
     server.insecure: true
 server:
   service:
@@ -25,14 +28,14 @@ server:
   ingress:
     enabled: true
     ingressClassName: nginx
-    hosts:
+    hosts:  
       - argocd.${var.domain_name}
     https: false
 
 
 global:
   nodeSelector:
-    karpenter.sh/nodepool: system-critical
+    nodepool: system-critical
   domain: argocd.${var.domain_name}
 
   tolerations:
@@ -42,7 +45,7 @@ global:
 
 controller:
   nodeSelector:
-    karpenter.sh/nodepool: system-critical
+    nodepool: system-critical
   tolerations:
     - key: "system-critical"
       operator: "Equal"
@@ -51,7 +54,7 @@ controller:
 
 repoServer:
   nodeSelector:
-    karpenter.sh/nodepool: system-critical
+    nodepool: system-critical
   tolerations:
     - key: "system-critical"
       operator: "Equal"
@@ -60,7 +63,7 @@ repoServer:
 
 applicationSet:
   nodeSelector:
-    karpenter.sh/nodepool: system-critical
+    nodepool: system-critical
   tolerations:
     - key: "system-critical"
       operator: "Equal"
@@ -70,7 +73,7 @@ applicationSet:
 redis:
 
   nodeSelector:
-    karpenter.sh/nodepool: system-critical
+    nodepool: system-critical
   tolerations:
     - key: "system-critical"
       operator: "Exists"
@@ -148,7 +151,7 @@ resource "kubectl_manifest" "argocd_ingress" {
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: argocd-server-ingress
+  name: argocd-ingress
   namespace: argocd
 spec:
   ingressClassName: nginx
