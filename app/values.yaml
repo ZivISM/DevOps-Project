@@ -3,7 +3,7 @@
 ###############################################################################
 global:
   environment: development
-  namespace: habitspace
+  namespace: habitspace-dev
   imagePullSecrets: []
 
 
