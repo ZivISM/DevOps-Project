@@ -27,7 +27,7 @@ spec:
   source:
     repoURL: https://github.com/ZivISM/DevOps-Project.git
     targetRevision: main
-    path: app-repo/
+    path: app/
     helm:
       valueFiles:
         - ../environments/production/values.yaml

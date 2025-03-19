@@ -226,7 +226,7 @@ secrets:
 # Monitoring
 ###############################################################################
 monitoring:
-  enabled: true
+  enabled: false
   prometheus:
     scrapeInterval: 5s
     path: /metrics 
