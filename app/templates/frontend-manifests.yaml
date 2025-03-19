@@ -77,7 +77,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.global.environment }}-frontend-service
-  namespace: habitspace
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "habitspace.labels" . | nindent 4 }}
 spec:

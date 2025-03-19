@@ -118,7 +118,6 @@ backend:
 ###############################################################################
 postgresql:
   enabled: true
-  namespaceOverride: "habitspace"
   auth:
     username: postgres
     postgresPassword: "postgres"
