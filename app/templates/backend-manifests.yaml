@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-backend
-  namespace: habitspace
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "habitspace.labels" . | nindent 4 }}
     component: backend
@@ -110,7 +110,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.global.environment }}-backend-service
-  namespace: habitspace
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "habitspace.labels" . | nindent 4 }}
 spec:

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-config
-  namespace: habitspace
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "habitspace.labels" . | nindent 4 }}
 data:
