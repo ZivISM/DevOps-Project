@@ -7,15 +7,12 @@ metadata:
   labels:
     {{- include "habitspace.labels" . | nindent 4 }}
 spec:
+  endpoints:
+  - path: /metrics
+    port: http
+    interval: {{ .Values.monitoring.prometheus.scrapeInterval }}
   selector:
     matchLabels:
       {{- include "habitspace.selectorLabels" . | nindent 6 }}
       component: backend
-      component: frontend
-      component: redis
-      component: postgres
-  endpoints:
-    - port: http
-      path: /metrics
-      interval: 15s
-{{- end -}} 
+{{- end }} 

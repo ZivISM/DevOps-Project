@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: habitspace-dev
+  namespace: argocd
+spec:
+  description: HabitSpace Development Project
+  sourceRepos:
+    - '*'  # Allows any repository
+  destinations:
+    - namespace: '*'  # Allows any namespace
+      server: '*'    # Allows any cluster
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: habitspace-dev
+  namespace: argocd
+spec:
+  project: habitspace-dev
+  sources:
+    - repoURL: https://github.com/ZivISM/DevOps-Project.git
+      targetRevision: development
+      path: app
+      helm:
+        valueFiles:
+          - $values/gitops/environments/development/values.yaml
+    - repoURL: https://github.com/ZivISM/DevOps-Project.git
+      targetRevision: development
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: habitspace-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true 
