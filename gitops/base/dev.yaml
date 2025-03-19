@@ -30,7 +30,7 @@ spec:
       path: app
       helm:
         valueFiles:
-          - $values/gitops-repo/environments/development/values.yaml
+          - $values/gitops/environments/development/values.yaml
     - repoURL: https://github.com/ZivISM/DevOps-Project.git
       targetRevision: development
       ref: values
