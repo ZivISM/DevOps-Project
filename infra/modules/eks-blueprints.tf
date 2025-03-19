@@ -17,11 +17,11 @@ module "eks_blueprints_addons" {
         vpcId: ${module.vpc.vpc_id}
         region: ${var.aws_region}
         tolerations:
-          - key: system-critical
+          - key: "system"
             operator: "Equal"
             effect: NoSchedule
         nodeSelector:
-          nodepool: system-critical
+          nodepool: system
         EOF
       ]
     }
@@ -41,11 +41,11 @@ module "eks_blueprints_addons" {
         hosts:
           - monitoring.${var.domain_name}
       tolerations:
-        - key: system-critical
+        - key: "system"
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        nodepool: system-critical
+        nodepool: system
       EOF
     ]
   }
@@ -62,11 +62,11 @@ module "eks_blueprints_addons" {
         values = [
       <<EOF
       tolerations:
-        - key: system-critical
+        - key: "system"
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        nodepool: system-critical
+        nodepool: system
       EOF
     ]
     }
@@ -78,11 +78,11 @@ module "eks_blueprints_addons" {
       values = [
       <<EOF
       tolerations:
-        - key: system-critical
+        - key: "system"
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        nodepool: system-critical
+        nodepool: system
       EOF
     ]
     }
@@ -93,11 +93,11 @@ module "eks_blueprints_addons" {
       values = [
       <<EOF
       tolerations:
-        - key: system-critical
+        - key: "system"
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        nodepool: system-critical
+        nodepool: system
       EOF
     ]
       timeouts = {
@@ -112,11 +112,11 @@ module "eks_blueprints_addons" {
       values = [
       <<EOF
       tolerations:
-        - key: system-critical
+        - key: "system"
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        nodepool: system-critical
+        nodepool: system
       EOF
     ]
     }
@@ -128,11 +128,11 @@ module "eks_blueprints_addons" {
       values = [
       <<EOF
       tolerations:
-        - key: system-critical
+        - key: "system"
           operator: "Equal"
           effect: NoSchedule
       nodeSelector:
-        nodepool: system-critical
+        nodepool: system
       EOF
     ]
     }

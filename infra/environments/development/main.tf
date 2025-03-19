@@ -21,9 +21,8 @@ module "infrastructure" {
   enable_nat_gateway = true
   single_nat_gateway = true
 
-  domain_name = "habits.dev.zivoosh.online"
+  domain_name = "dev.zivoosh.online"
 
-  github_repo = "https://github.com/ZivISM/DevOps-Project.git"
 
 
 ###############################################################################
@@ -35,8 +34,8 @@ module "infrastructure" {
 
   enable_aws_load_balancer_controller = true
   enable_aws_efs_csi_driver = true
-  enable_metrics_server = true
-  enable_kube_prometheus_stack = true
+  enable_metrics_server = false
+  enable_kube_prometheus_stack = false
   map_users = [
     {
       userarn  = "arn:aws:iam::123456789012:user/localadmin"
@@ -72,22 +71,22 @@ module "infrastructure" {
 ###############################################################################
 
   karpenter_config = {
-    "system-critical" = {
+    "system" = {
       tainted    = true    # Marks nodes with a taint to prevent regular workloads from scheduling
       core       = true    # Identifies this as a core system component provisioner
       disruption = true    # disruption of these nodes during maintenance
       arc        = false   # Disables AWS Resource Controller integration
       amiFamily  = "AL2023" # Uses Amazon Linux 2023 as the node AMI
       labels = {
-        "nodepool" = "system-critical"
+        "nodepool" = "system"
       }
       instance_category = {
         operator = "In"
-        values   = ["t"]  # General purpose for system components
+        values   = ["t"]  
       }
       instance_cpu = {
         operator = "In"
-        values   = ["4"]  # Moderate CPU sizes
+        values   = ["4"]  
       }
       instance_hypervisor = {
         operator = "In"
@@ -106,29 +105,33 @@ module "infrastructure" {
         values   = ["t"]
         minValues = 1
       }
+      taint = {
+        key    = "system"
+        effect = "NoSchedule"
+      }
       limits = {
-        cpu               = "50"
-        memory            = "50Gi"
+        cpu               = "8"
+        memory            = "16Gi"
         ephemeral_storage = "20Gi"
       }
     }
 
-    "general-workload" = {
+    "general" = {
       tainted    = false
       core       = false
       disruption = true
       arc        = false
       amiFamily  = "AL2023"
       labels = {
-        "nodepool" = "general-workload"
+        "nodepool" = "general"
       }
       instance_category = {
         operator = "In"
-        values   = ["t"]  # Mix of burstable and general purpose
+        values   = ["t"]  
       }
       instance_cpu = {
         operator = "In"
-        values   = ["2"]  # Flexible CPU sizes
+        values   = ["2"]  
       }
       instance_hypervisor = {
         operator = "In"
@@ -147,9 +150,13 @@ module "infrastructure" {
         values   = ["t3"]
         minValues = 3
       }
+      taint = {
+        key    = "system"
+        effect = "NoSchedule"
+      }
       limits = {
-        cpu               = "35"
-        memory            = "35Gi"
+        cpu               = "4"
+        memory            = "8Gi"
         ephemeral_storage = "20Gi"
       }
     }

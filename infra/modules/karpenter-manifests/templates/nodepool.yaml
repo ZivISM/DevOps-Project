@@ -21,8 +21,8 @@ spec:
             name: "{{ .Release.Name }}-ec2nc"
         {{- if .Values.nodePool.tainted }}
         taints:
-        - key: {{ .Release.Name }}
-          effect: NoSchedule
+        - key: {{ .Values.nodePool.taint.key }}
+          effect: {{ .Values.nodePool.taint.effect }}
         {{- end }}
         requirements:
         - key: "karpenter.k8s.aws/instance-category"

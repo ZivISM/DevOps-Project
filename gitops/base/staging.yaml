@@ -6,10 +6,10 @@ metadata:
 spec:
   description: HabitSpace Staging Project
   sourceRepos:
-    - '*'  # Allows any repository
+    - '*'  
   destinations:
-    - namespace: '*'  # Allows any namespace
-      server: '*'    # Allows any cluster
+    - namespace: '*'  
+      server: '*'   
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
@@ -37,6 +37,6 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: false  # Require manual approval for staging
+      selfHeal: false  
     syncOptions:
       - CreateNamespace=true

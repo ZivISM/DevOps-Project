@@ -8,10 +8,16 @@ resource "helm_release" "argocd" {
   repository = "https://argoproj.github.io/argo-helm"
   version    = "7.1.3" 
   create_namespace = true
+  
 
   set {
     name = "config.params.server\\.insecure"
     value = "true"
+  }
+
+  set {
+    name = "server.extraArgs[0]"
+    value = "--insecure"
   }
 
   values = [
@@ -26,100 +32,59 @@ server:
   service:
     type: ClusterIP
   ingress:
-    enabled: true
+    enabled: false
     ingressClassName: nginx
     hosts:  
       - argocd.${var.domain_name}
     https: false
 
-
 global:
   nodeSelector:
-    nodepool: system-critical
+    nodepool: system
   domain: argocd.${var.domain_name}
 
   tolerations:
-    - key: "system-critical"
+    - key: "system"
       operator: "Exists"
 
 
 controller:
   nodeSelector:
-    nodepool: system-critical
+    nodepool: system
   tolerations:
-    - key: "system-critical"
+    - key: "system"
       operator: "Equal"
-      value: "true"
       effect: "NoSchedule"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
 
 repoServer:
   nodeSelector:
-    nodepool: system-critical
+    nodepool: system
   tolerations:
-    - key: "system-critical"
+    - key: "system"
       operator: "Equal"
-      value: "true"
       effect: "NoSchedule"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
 
 applicationSet:
   nodeSelector:
-    nodepool: system-critical
+    nodepool: system
   tolerations:
-    - key: "system-critical"
+    - key: "system"
       operator: "Equal"
-      value: "true"
       effect: "NoSchedule"
-
-redis:
-
-  nodeSelector:
-    nodepool: system-critical
-  tolerations:
-    - key: "system-critical"
-      operator: "Exists"
-      value: "true"
-      effect: "NoSchedule"
-
-
-# Resource requests and limits for better scheduling
-
-
-# Server
-
-server:
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-
-# Controller 
-
-controller:
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-
-# RepoServer
-
-repoServer:
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-
-# ApplicationSet
-
-applicationSet:
   resources:
     limits:
       cpu: 500m
@@ -128,9 +93,13 @@ applicationSet:
       cpu: 250m
       memory: 256Mi
 
-# Redis
-
 redis:
+  nodeSelector:
+    nodepool: system
+  tolerations:
+    - key: "system"
+      operator: "Exists"
+      effect: "NoSchedule"
   resources:
     limits:
       cpu: 500m
@@ -151,7 +120,7 @@ resource "kubectl_manifest" "argocd_ingress" {
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: argocd-ingress
+  name: argo-ingress-manifested
   namespace: argocd
 spec:
   ingressClassName: nginx
@@ -165,7 +134,7 @@ spec:
           service:
             name: argocd-server
             port:
-              number: 443
+              number: 80
 
 YAML
 

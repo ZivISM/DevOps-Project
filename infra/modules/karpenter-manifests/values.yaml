@@ -21,6 +21,9 @@ nodePool:
   capacity_type: 
     operator: In
     values: ["spot","on-demand"]
+  taint:
+    key: "system"
+    effect: "NoSchedule"
   
   instance_family: 
     operator: In

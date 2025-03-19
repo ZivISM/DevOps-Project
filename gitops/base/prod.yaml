@@ -6,10 +6,10 @@ metadata:
 spec:
   description: HabitSpace Production Project
   sourceRepos:
-    - '*'  # Allows any repository
+    - '*'  
   destinations:
-    - namespace: '*'  # Allows any namespace
-      server: '*'    # Allows any cluster
+    - namespace: '*'  
+      server: '*'   
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
@@ -36,13 +36,13 @@ spec:
     namespace: habitspace-prod
   syncPolicy:
     automated:
-      prune: false  # Disable automatic pruning for production
-      selfHeal: false  # Require manual approval for production
+      prune: false  
+      selfHeal: false  
     syncOptions:
       - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true  # Only apply changes that are out of sync
+      - ApplyOutOfSyncOnly=true  
   ignoreDifferences:
     - group: apps
       kind: Deployment
       jsonPointers:
-        - /spec/replicas  # Ignore replica count differences in prod
+        - /spec/replicas  

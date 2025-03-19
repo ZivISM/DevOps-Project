@@ -132,9 +132,9 @@ resource "helm_release" "nginx" {
       name: nginx
       enabled: true
     nodeSelector:
-      nodepool: system-critical
+      nodepool: system
     tolerations:
-      - key: system-critical
+      - key: system
         operator: "Equal"
         effect: NoSchedule
   EOF
@@ -146,7 +146,7 @@ resource "helm_release" "nginx" {
 }
 
 ###############################################################################
-# System-Critical HPA
+# System HPA
 ###############################################################################
 resource "kubernetes_horizontal_pod_autoscaler_v1" "system_critical_hpa" {
   for_each = {
@@ -162,12 +162,12 @@ resource "kubernetes_horizontal_pod_autoscaler_v1" "system_critical_hpa" {
       max_replicas = 2
       target_cpu_utilization = 75
     }
-    "kube-prometheus-stack" = {
-      namespace = "kube-prometheus-stack"
-      min_replicas = 1
-      max_replicas = 2
-      target_cpu_utilization = 75
-    }
+    # "kube-prometheus-stack" = {
+    #   namespace = "kube-prometheus-stack"
+    #   min_replicas = 1
+    #   max_replicas = 2
+    #   target_cpu_utilization = 75
+    # }
   }
 
   metadata {

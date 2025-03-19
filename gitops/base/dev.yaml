@@ -6,10 +6,10 @@ metadata:
 spec:
   description: HabitSpace Development Project
   sourceRepos:
-    - '*'  # Allows any repository
+    - '*'  
   destinations:
-    - namespace: '*'  # Allows any namespace
-      server: '*'    # Allows any cluster
+    - namespace: '*'  
+      server: '*'   
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
@@ -27,7 +27,7 @@ spec:
   sources:
     - repoURL: https://github.com/ZivISM/DevOps-Project.git
       targetRevision: development
-      path: app-repo
+      path: app
       helm:
         valueFiles:
           - $values/gitops-repo/environments/development/values.yaml
@@ -42,8 +42,3 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
-
-# ---
-
-
-# ---

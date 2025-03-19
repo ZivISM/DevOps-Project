@@ -197,7 +197,10 @@ variable "karpenter_config" {
       operator = string
       values   = list(string)
     })
-
+    taint = object({
+      key    = string
+      effect = string
+    })
     instance_family = optional(object({
       operator  = string
       values    = optional(list(string))
@@ -211,9 +214,4 @@ variable "karpenter_config" {
     })
   }))
   default = {}
-}
-
-variable "github_repo" {
-  description = "The GitHub repository to use"
-  type        = string
 }

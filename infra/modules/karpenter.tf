@@ -157,6 +157,9 @@ resource "helm_release" "karpenter-manifests" {
     instance_family: 
       operator: ${each.value.instance_family.operator}
       values: ${jsonencode(each.value.instance_family.values)}
+    taint:
+      key: ${each.value.taint.key}
+      effect: ${each.value.taint.effect}
     %{endif}
     cpu: "${each.value.limits.cpu}"
     memory: "${each.value.limits.memory}"
