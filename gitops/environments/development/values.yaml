@@ -166,7 +166,7 @@ postgresql:
       cpu: 500m
       memory: 512Mi
   tolerations:
-    - key: "general-workload"
+    - key: "general"
       operator: "Equal"
       effect: "NoSchedule"
 
@@ -179,11 +179,8 @@ ingress:
   annotations:
 
   hosts:
-    - host: 
-      paths:
-        - path: 
-          pathType: 
-  tls: []
+    - host: habitspace.dev.zivoosh.online
+
 
 ###############################################################################
 # PDB
