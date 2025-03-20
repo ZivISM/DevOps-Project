@@ -20,7 +20,7 @@ spec:
             port:
               number: {{ .Values.backend.service.port }}
       - path: /
-        pathType: ImplementationSpecific
+        pathType: Prefix
         backend:
           service:
             name: {{ .Release.Name }}-frontend-service
