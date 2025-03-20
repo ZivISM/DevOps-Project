@@ -124,7 +124,7 @@ postgresql:
     postgresql:
       auth:
         username: postgres
-        password: "postgres"
+        password: password
         database: habits
       primary:
         persistence:
